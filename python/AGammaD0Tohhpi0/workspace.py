@@ -1,9 +1,9 @@
 '''Instantiates the RooWorkspace for the current analysis.'''
 
-from TemplateAnalysis.data import datadir
+from AGammaD0Tohhpi0.data import datadir
 from AnalysisUtils.workspace import *
 import os
-from TemplateAnalysis.variables import variables
+from AGammaD0Tohhpi0.variables import variables
 
 # If you want a persistent workspace between sessions you can give it a file name.
 #workspacefilename = os.path.join(datadir, 'workspace.root')

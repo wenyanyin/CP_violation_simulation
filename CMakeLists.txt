@@ -1,7 +1,7 @@
 ################################################################################
-# Package: TemplateAnalysis
+# Package: AGammaD0Tohhpi0
 ################################################################################
-gaudi_subdir(TemplateAnalysis v0r1)
+gaudi_subdir(AGammaD0Tohhpi0 v0r1)
 
 gaudi_depends_on_subdirs(
 	GaudiConfUtils
@@ -17,19 +17,19 @@ find_package(ROOT COMPONENTS Core RIO Hist Graf Graf3d Postscript Gpad
 # set(ROOT_genreflex_CMD ${env_cmd} --xml ${env_xml} ${ROOT_genreflex_CMD})
 
 include_directories(${Boost_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
-# gaudi_add_dictionary(TemplateAnalysis
-#                      dict/TemplateAnalysisDict.h dict/TemplateAnalysisDict.xml
+# gaudi_add_dictionary(AGammaD0Tohhpi0
+#                      dict/AGammaD0Tohhpi0Dict.h dict/AGammaD0Tohhpi0Dict.xml
 #                      SPLIT_CLASSDEF)
 
-# gaudi_add_library(TemplateAnalysisLib
+# gaudi_add_library(AGammaD0Tohhpi0Lib
 #                   src/*.cpp
-#                   TemplateAnalysisDict_classdef.cpp
-#                   PUBLIC_HEADERS TemplateAnalysis
+#                   AGammaD0Tohhpi0Dict_classdef.cpp
+#                   PUBLIC_HEADERS AGammaD0Tohhpi0
 #                   INCLUDE_DIRS Boost ROOT
 #                   LINK_LIBRARIES Boost ROOT)
 
 # # ensure that genreflex is not called twice (in parallel builds)
-# add_dependencies(TemplateAnalysisLib TemplateAnalysisGen)
+# add_dependencies(AGammaD0Tohhpi0Lib AGammaD0Tohhpi0Gen)
 
 gaudi_install_python_modules()
 

@@ -2,9 +2,9 @@
 
 import os, ROOT, pprint
 from AnalysisUtils.data import DataLibrary
-from TemplateAnalysis.variables import variables
+from AGammaD0Tohhpi0.variables import variables
 
-datadir = os.environ.get('TEMPLATEANALYSISDATADIR', 
+datadir = os.environ.get('AGAMMAD0TOHHPI0DATADIR', 
                          'root://eoslhcb.cern.ch//eos/lhcb/user/u/user/data/')
 varnames = ('mass', 'decaytime', 'XcIPX', 'XcIPY')
 
