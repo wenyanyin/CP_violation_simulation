@@ -6,7 +6,7 @@ from AGammaD0Tohhpi0.variables import variables
 
 datadir = os.environ.get('AGAMMAD0TOHHPI0DATADIR', 
                          '/nfs/lhcb/d2hh01/hhpi0/')
-varnames = ('mass', 'decaytime', 'XcIPX', 'XcIPY')
+varnames = ('deltam',)
 
 # All the TTree datasets, the tree names and file names (any number of file names can be given).
 datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_S24r1_part_pipipi0.root')),
