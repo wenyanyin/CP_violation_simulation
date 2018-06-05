@@ -1,0 +1,7 @@
+BDT trainings from Theodora's Honours project.
+
+Trained on HLT2 TIS pipipi0 MC for signal and stripping test data in deltam sideband for background.
+
+TMVAClassification_BDT.weights_ALL.xml uses all the variables we could think of.
+
+TMVAClassification_BDT.weights.xml uses the reduced set that Theodora came up with.
