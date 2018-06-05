@@ -3,10 +3,20 @@
 The code is organised as an LHCb CMake project, so you can build & run it in an LHCb application. It requires AnalysisUtils. Eg,
 
 ```
-lb-dev DaVinci/v43r1
-cd DaVinciDev_v43r1
+lb-dev DaVinci/v44r3
+cd DaVinciDev_v44r3
 git clone ssh://git@gitlab.cern.ch:7999/malexand/AGammaD0Tohhpi0.git
 git clone ssh://git@gitlab.cern.ch:7999/malexand/AnalysisUtils.git
+make
+```
+
+or to use the public Github repos do
+
+```
+lb-dev DaVinci/v44r3
+cd DaVinciDev_v44r3
+git clone git@github.com:MannyMoo/AGammaD0Tohhpi0.git
+git clone git@github.com:MannyMoo/AnalysisUtils.git
 make
 ```
 
