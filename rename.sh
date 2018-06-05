@@ -8,3 +8,4 @@ for f in $(find . -path ./.git -prune -o -type f) ; do
 done
 	
 git mv python/TemplateAnalysis python/$name
+git rm rename.sh
