@@ -2,7 +2,7 @@
 
 import os, ROOT, pprint
 from AnalysisUtils.data import DataLibrary
-from AnalysisUtils.variables import variables
+from TemplateAnalysis.variables import variables
 
 datadir = os.environ.get('TEMPLATEANALYSISDATADIR', 
                          'root://eoslhcb.cern.ch//eos/lhcb/user/u/user/data/')

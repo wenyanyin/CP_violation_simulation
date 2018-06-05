@@ -1,7 +1,7 @@
 '''Instantiates the RooWorkspace for the current analysis.'''
 
 from TemplateAnalysis.data import datadir
-from AnalysisUtils.workspace import Workspace
+from AnalysisUtils.workspace import *
 import os
 from TemplateAnalysis.variables import variables
 
