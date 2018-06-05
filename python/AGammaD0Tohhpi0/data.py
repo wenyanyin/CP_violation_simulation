@@ -5,11 +5,15 @@ from AnalysisUtils.data import DataLibrary
 from AGammaD0Tohhpi0.variables import variables
 
 datadir = os.environ.get('AGAMMAD0TOHHPI0DATADIR', 
-                         'root://eoslhcb.cern.ch//eos/lhcb/user/u/user/data/')
+                         '/nfs/lhcb/d2hh01/hhpi0/')
 varnames = ('mass', 'decaytime', 'XcIPX', 'XcIPY')
 
 # All the TTree datasets, the tree names and file names (any number of file names can be given).
-datapaths = {'LTUNB_Lc_2015' : ('XcTopKpiTuple/DecayTree', os.path.join(datadir, 'Lc_2015.root')),
+datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_S24r1_part_pipipi0.root')),
+             'Data_2015_Kpipi0' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_S24r1_part_Kpipi0.root')),
+             'Data_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_HLT2TIS.root')),
+             'MC_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_MC_Matched.root')),
+             'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_MC_S28_Matched.root')),
              }
 
 datalib = DataLibrary(datapaths, variables, varnames)
