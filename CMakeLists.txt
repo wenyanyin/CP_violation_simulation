@@ -3,7 +3,9 @@
 ################################################################################
 gaudi_subdir(TemplateAnalysis v0r1)
 
-gaudi_depends_on_subdirs(GaudiConfUtils)
+gaudi_depends_on_subdirs(
+	GaudiConfUtils
+	AnalysisUtils)
 
 find_package(PythonLibs)
 find_package(Boost COMPONENTS program_options REQUIRED)
