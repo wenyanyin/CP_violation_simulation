@@ -13,7 +13,7 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'Data_2015_Kpipi0' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_S24r1_part_Kpipi0.root')),
              'Data_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_HLT2TIS.root')),
              'MC_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_Matched.root')),
-             'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched.root')),
+             'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
              }
 
 datalib = DataLibrary(datapaths, variables, varnames)
