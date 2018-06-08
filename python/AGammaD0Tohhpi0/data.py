@@ -16,4 +16,6 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
              }
 
-datalib = DataLibrary(datapaths, variables, varnames)
+selection = 'BDT > 0'
+
+datalib = DataLibrary(datapaths, variables, varnames = varnames, selection = selection)
