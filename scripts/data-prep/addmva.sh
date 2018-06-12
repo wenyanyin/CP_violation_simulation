@@ -13,8 +13,11 @@ mva=BDT
 #inputtree="DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree"
 #outputfile=\$AGAMMAD0TOHHPI0DATADIR/data/DaVinciTuples_S24r1_part_BDT_Kpipi0.root
 
-inputfile=\$AGAMMAD0TOHHPI0DATADIR/mc/DaVinciTuples_MC_S28_Matched.root
+inputfile=\$AGAMMAD0TOHHPI0DATADIR/mc/DaVinciTuples_MC_S28_Matched_pipipi0.root
 inputtree=DecayTree
-outputfile=\$AGAMMAD0TOHHPI0DATADIR/mc/DaVinciTuples_MC_S28_Matched_BDT.root
+outputfile=\$AGAMMAD0TOHHPI0DATADIR/mc/DaVinciTuples_MC_S28_Matched_pipipi0_BDT.root
+outputtree=BDTTree
 
-../../../run python \$ANALYSISUTILSROOT/python/AnalysisUtils/addmva.py --inputfile ${inputfile/\$/\$} --inputtree "$inputtree" --outputfile $outputfile --outputtree BDTTree --weightsfile \$AGAMMAD0TOHHPI0ROOT/tmva/20180327-Theodora/TMVAClassification_${mva}.weights.xml --weightsvar ${mva} # --maxentries 1000
+../../../run python \$ANALYSISUTILSROOT/python/AnalysisUtils/addmva.py --inputfile ${inputfile/\$/\$} --inputtree "$inputtree" --outputfile $outputfile --outputtree BDTTree --weightsfile \$AGAMMAD0TOHHPI0ROOT/tmva/20180327-Theodora/TMVAClassification_${mva}.weights.xml --weightsvar ${mva} && \
+../../../run \$ANALYSISUTILSROOT/scripts/mergetrees.py tmp.root ${inputfile/\$/\$} $inputtree ${outputfile/\$/\$} $outputtree && \
+../../../run mv tmp.root ${inputfile/\$/\$}
