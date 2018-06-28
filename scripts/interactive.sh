@@ -1,3 +1,4 @@
 #!/bin/bash
 
-../../run ipython -i interactive.py
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+${DIR}/../../run ipython -i ${DIR}/interactive.py

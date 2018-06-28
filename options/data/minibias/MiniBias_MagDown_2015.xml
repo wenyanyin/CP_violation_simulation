@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!-- Edited By PoolXMLCatalog.py -->
+<!DOCTYPE POOLFILECATALOG SYSTEM "InMemory">
+<POOLFILECATALOG>
+
+<File ID="4C7F6ED7-04C6-E511-850F-02163E013D78">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000187_1.minibias.dst" se="CERN-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000187_1.minibias.dst"/>
+   </logical>
+</File>
+<File ID="B84A78F8-06C6-E511-9C6A-001E67396A63">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://clhcbstager.ads.rl.ac.uk//castor/ads.rl.ac.uk/prod/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000265_1.minibias.dst?svcClass=lhcbDst" se="RAL-DST"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000265_1.minibias.dst"/>
+   </logical>
+</File>
+<File ID="1E5A893A-F3C5-E511-8271-001E67E71DFD">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000028_1.minibias.dst" se="CERN-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/LHCb/Collision15/MINIBIAS.DST/00049575/0000/00049575_00000028_1.minibias.dst"/>
+   </logical>
+</File>
+
+</POOLFILECATALOG>
