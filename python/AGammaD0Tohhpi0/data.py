@@ -14,6 +14,7 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'Data_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_HLT2TIS.root')),
              'MC_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_Matched.root')),
              'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
+             'MiniBias_2015' : ('pions_tuple_sel/DecayTree', os.path.join(datadir, 'minibias/DVTuples_2015.root')),
              }
 
 selection = 'BDT > 0'
