@@ -1,6 +1,6 @@
 '''Functions to access all the relevant datasets for the analysis, both TTrees and RooDataSets.'''
 
-import os, ROOT, pprint
+import os, ROOT, pprint, glob
 from AnalysisUtils.data import DataLibrary
 from AGammaD0Tohhpi0.variables import variables
 
@@ -14,7 +14,7 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'Data_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'data/DaVinciTuples_HLT2TIS.root')),
              'MC_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_Matched.root')),
              'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
-             'MiniBias_2015' : ('pions_tuple_sel/DecayTree', os.path.join(datadir, 'minibias/DVTuples_2015.root')),
+             'MiniBias_2015' : ('pions_tuple_sel/DecayTree',) + tuple(glob.glob(os.path.join(datadir, '../minibias/2015/*/DVTuples*.root'))),
              }
 
 selection = 'BDT > 0'

@@ -9,7 +9,7 @@ tmb = datalib.MiniBias_2015()
 idata = 0
 c = ROOT.TCanvas()
 h = ROOT.TH1F('h', '', 100, 140, 170)
-for i in xrange(tmb.GetEntries()) :
+for i in xrange(min(tmb.GetEntries(), tdata.GetEntries())) :
     tmb.GetEntry(i)
     tdata.GetEntry(i)
     pD = ROOT.TLorentzVector(tdata.lab1_PX, tdata.lab1_PY, tdata.lab1_PZ, tdata.lab1_PE)

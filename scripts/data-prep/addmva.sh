@@ -24,6 +24,8 @@ mva=BDT
 
 inputtree="DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree"
 for inputfile in $(ls $AGAMMAD0TOHHPI0DATADIR/data/2015/*/DaVinciTuples_*.root) ; do
-    outputfile=${inputfile/\.root/_BDT.root}
-    ../../../run python \$ANALYSISUTILSROOT/python/AnalysisUtils/addmva.py --inputfile ${inputfile/\$/\$} --inputtree "$inputtree" --outputfile $outputfile --outputtree BDTTree --weightsfile \$AGAMMAD0TOHHPI0ROOT/tmva/20180327-Theodora/TMVAClassification_${mva}.weights.xml --weightsvar ${mva}
+    echo $inputfile
+    outputfile=${inputfile/\.root/_Kpipi0_BDT.root}
+    echo $outputfile
+    ../../../run python \$ANALYSISUTILSROOT/python/AnalysisUtils/addmva.py --inputfile ${inputfile/\$/\$} --inputtree "$inputtree" --outputfile $outputfile --outputtree BDTTree --weightsfile \$AGAMMAD0TOHHPI0ROOT/tmva/20180702-Lewis/TMVAClassification_BDT_Kpipi0.weights.xml --weightsvar ${mva}
 done
