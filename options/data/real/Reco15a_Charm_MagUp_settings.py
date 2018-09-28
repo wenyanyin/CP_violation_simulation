@@ -32,10 +32,11 @@ Number of events 0
 Path:  /LHCb/Collision15/Beam6500GeV-VeloClosed-MagUp/Real Data/Reco15a/Stripping24r1
 '''
 
-from Configurables import DaVinci, CondDB
+from Configurables import DaVinci
 from Gaudi.Configuration import importOptions
 
 importOptions('$APPCONFIGOPTS/DaVinci/DataType-2015.py')
 DaVinci().InputType = 'MDST'
+DaVinci().CondDBtag = 'cond-20150828'
+DaVinci().DDDBtag = 'dddb-20150724'
 
-CondDB().LatestGlobalTagByDataType = DaVinci().DataType
