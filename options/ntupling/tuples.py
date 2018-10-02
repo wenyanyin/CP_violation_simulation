@@ -1,7 +1,8 @@
 import sys
 sys.path.insert(0, '/cvmfs/lhcb.cern.ch/lib/lhcb/STRIPPING/STRIPPING_v11r5p1/Phys/StrippingSelections/tests/users/')
 from StrippingTuple import stripping_tuple_sequence_from_doc
-from Configurables import TupleToolTISTOS, LoKi__Hybrid__TupleTool, DaVinci, TupleToolDecayTreeFitter
+from Configurables import TupleToolTISTOS, LoKi__Hybrid__TupleTool, DaVinci, TupleToolDecayTreeFitter, \
+    TupleToolPropertime, TupleToolANNPID
 from StrippingDoc import StrippingDoc
 
 stream = 'Charm.mdst'
@@ -13,7 +14,9 @@ elif DaVinci().getProp('Simulation') :
 doc = StrippingDoc('stripping28')
 tuples = []
 seqs = []
-for line in doc.filter_lines(lambda line : line.name.startswith('DstarD0ToHHPi0')) :
+for line in doc.filter_lines(lambda line : (line.name.startswith('DstarD0ToHHPi0') 
+                                            and not 'KK' in line.name 
+                                            and not 'WIDEMASS' in line.name)) :
     seq = stripping_tuple_sequence_from_doc(line, stream = stream)
     seqs.append(seq)
     tuples.append(seq.Members[-1])
@@ -43,21 +46,32 @@ tttistos.TriggerList = [line + 'Decision' for line in ['Hlt2CharmHadInclDst2PiD0
                                                        'Hlt1CalibTrackingKPiDetached',
                                                        'Hlt1CalibTrackingPiPi',]]
 
+tttime = TupleToolPropertime('tttime')
+tttime.FitToPV = True
+
+ttpid = TupleToolANNPID('ttpid')
+ttpid.ANNPIDTunes = ['MC15TuneV1']
+
 for dtt in tuples :
     if '_R_' in dtt.name() :
         dtt.Decay = dtt.Decay.replace('pi0', '( pi0 -> ^gamma ^gamma )')
     dtt.addBranches({'lab0' : dtt.Decay.replace('^', '')})
     dtt.lab0.addTupleTool(tttistos)
-    dtt.ToolList += ['TupleToolPropertime',
-                     'TupleToolPrimaries',
+    dtt.addTupleTool(tttime)
+    dtt.ToolList.remove('TupleToolANNPID')
+    dtt.ToolList.remove('TupleToolPid')
+    dtt.addTupleTool(ttpid)
+    dtt.ToolList += ['TupleToolPrimaries',
                      'TupleToolTrackInfo']
-    for vtxname, vtx in ('', False), ('_vtx', True) :
-        for constraintname, constraints in ('', ['pi0']), ('_D0Mass', ['D0', 'pi0']), ('_DstMass', ['D*(2010)+', 'pi0']), ('_BothMass', ['D0', 'D*(2010)+', 'pi0']) :
-            ttdtf = TupleToolDecayTreeFitter('DTF' + vtxname + constraintname)
-            ttdtf.constrainToOriginVertex = vtx
-            ttdtf.daughtersToConstrain = constraints
-            ttdtf.Verbose = True
-            dtt.lab0.addTupleTool(ttdtf)
+    for name, attrs in {'DTF' : {'constrainToOriginVertex' : False,
+                                 'daughtersToConstrain' : ['pi0']},
+                        'DTF_vtx' : {'constrainToOriginVertex' : True,
+                                     'daughtersToConstrain' : ['pi0']},
+                        'DTF_vtx_D0Mass' : {'constrainToOriginVertex' : True,
+                                            'daughtersToConstrain' : ['pi0', 'D0']}}.items() :
+        ttdtf = TupleToolDecayTreeFitter(name, **attrs)
+        ttdtf.Verbose = True
+        dtt.lab0.addTupleTool(ttdtf)
 
 if DaVinci().getProp('Simulation') :
     from Configurables import TupleToolMCTruth, MCTupleToolPrompt
