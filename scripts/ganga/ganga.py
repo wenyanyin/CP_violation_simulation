@@ -3,7 +3,7 @@ import os
 optsdir = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/options')
 dvdir = os.environ['DAVINCIDEV_PROJECT_ROOT']
 
-def make_job(name, datafile, filesperjob, restrip = True) :
+def make_job(name, datafile, filesperjob, restrip = True, diracoutput = False) :
     settings = datafile.replace('.py', '_settings.py')
     if not os.path.exists(settings) :
         settings = datafile.replace('.py', '_DV.py')
@@ -24,7 +24,12 @@ def make_job(name, datafile, filesperjob, restrip = True) :
     j = Job(name = name, splitter = SplitByFiles(filesPerJob = filesperjob),
             application = GaudiExec(**opts),
                                     backend = Dirac(),
-                                    outputfiles = [LocalFile('DaVinciTuples.root')],)
+            )
+    if diracoutput :
+        j.outputfiles = [DiracFile('DaVinciTuples.root')]
+    else :
+        j.outputfiles = [LocalFile('DaVinciTuples.root')]
+
     j.application.readInputData(datafile)
     return j
 
@@ -59,7 +64,7 @@ def make_jobs() :
     for fname in glob.glob(os.path.join(optsdir, 'data/real/Reco16*Charm*')) :
         if '_DV' in fname or '_settings' in fname :
             continue
-        j = make_job(os.path.split(fname)[1], fname, 10, False)
+        j = make_job(os.path.split(fname)[1], fname, 30, False, diracoutput = True)
         j = j.copy()
         j.splitter = None
         j.backend = Local()
@@ -69,4 +74,5 @@ def make_jobs() :
 from Configurables import DaVinci
 DaVinci().EvtMax = 10000
 '''
+        j.outputfiles = [LocalFile('DaVinciTuples.root')]
         j.submit()
