@@ -17,6 +17,6 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'MiniBias_2015' : ('pions_tuple_sel/DecayTree',) + tuple(glob.glob(os.path.join(datadir, '../minibias/2015/*/DVTuples*.root'))),
              }
 
-selection = 'BDT > 0'
+selection = 'BDT > -0.1'
 
 datalib = DataLibrary(datapaths, variables, varnames = varnames, selection = selection)

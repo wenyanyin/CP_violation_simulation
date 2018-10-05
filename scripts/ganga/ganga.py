@@ -1,4 +1,5 @@
 import os
+from pprint import pformat
 
 optsdir = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/options')
 dvdir = os.environ['DAVINCIDEV_PROJECT_ROOT']
@@ -76,3 +77,20 @@ DaVinci().EvtMax = 10000
 '''
         j.outputfiles = [LocalFile('DaVinciTuples.root')]
         j.submit()
+
+def get_output_access_urls(jobs, outputfile) :
+    if not hasattr(jobs, '__iter__') :
+        jobs = [jobs]
+    urls = []
+    badSEs = set()
+    for job in jobs :
+        for sj in job.subjobs.select(status = 'completed') :
+            fout = sj.outputfiles[0]
+            try :
+                urls.append(fout.accessURL())
+            except :
+                pass
+    with open(outputfile, 'w') as f :
+        f.write('urls = ' + pprint.pformat(urls).replace('\n', '\n' + ' ' * len('urls = ')))
+    print 'Got URLs for {0}/{1} subjobs'.format(len(urls), sum(len(j.subjobs) for j in jobs))
+    return urls
