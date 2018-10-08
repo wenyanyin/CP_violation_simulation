@@ -2,7 +2,8 @@
 
 import os, ROOT, shutil, glob
 from AnalysisUtils.treeutils import copy_tree
-from AGammaD0Tohhpi0.data import datadir
+from AGammaD0Tohhpi0.data import datadir, datalib
+from AnalysisUtils.addmva import make_mva_tree
 
 def trim_file(infile) :
     removebranches = ('lab[0-9]_MC12TuneV[0-9]_ProbNN',
@@ -37,9 +38,32 @@ def trim_file(infile) :
     infile.Close()
     shutil.move(outfile.GetName(), infile.GetName())
 
-if __name__ == '__main__' :
+def trim_2015_tuples() :
     files = glob.glob(os.path.join(datadir, 'data', '2015', '*', 'DaVinciTuples_*_Data.root'))
     nfiles = '/' + str(len(files))
     for i, f in enumerate(files) :
         print str(i+1) + nfiles, f
         trim_file(f)
+
+def filter_tuple_mva(inputtree, weightsfile, weightsvar, outputfile, cut) :
+    print 'Calculate MVA variable for tree', inputtree.GetName()
+    make_mva_tree(inputtree, weightsfile, weightsvar, weightsvar + 'Tree', outputfile + '.weights')
+    mvafile = ROOT.TFile.Open(outputfile + '.weights')
+    mvatree = mvafile.Get(weightsvar + 'Tree')
+    inputtree.AddFriend(mvatree)
+    fout = ROOT.TFile.Open(outputfile, 'recreate')
+    sel = weightsvar + ' >= ' + str(cut)
+    print 'Filter tree', inputtree, 'with selection', sel
+    treeout = inputtree.CopyTree(sel)
+    fout.Write()
+    fout.Close()
+
+def filter_2016_tuples() :
+    weightsfile = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/tmva/20180702-Lewis/TMVAClassification_BDT_Kpipi0.weights.xml')
+    for mag in 'Up', 'Down' :
+        data = getattr(datalib, 'Data_2016_Kpipi0_Mag' + mag + '_full')()
+        filter_tuple_mva(data, weightsfile, 'BDT', os.path.join(datadir, 'data', 'Data_2016_Mag' + mag + '.root'),
+                         datalib.selection.split()[-1])
+
+if __name__ == '__main__' :
+    filter_2016_tuples()

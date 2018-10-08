@@ -82,15 +82,15 @@ def get_output_access_urls(jobs, outputfile) :
     if not hasattr(jobs, '__iter__') :
         jobs = [jobs]
     urls = []
-    badSEs = set()
+    failures = []
     for job in jobs :
         for sj in job.subjobs.select(status = 'completed') :
             fout = sj.outputfiles[0]
             try :
-                urls.append(fout.accessURL())
+                urls.append(fout.accessURL()[0])
             except :
-                pass
+                failures.append(sj)
     with open(outputfile, 'w') as f :
-        f.write('urls = ' + pprint.pformat(urls).replace('\n', '\n' + ' ' * len('urls = ')))
-    print 'Got URLs for {0}/{1} subjobs'.format(len(urls), sum(len(j.subjobs) for j in jobs))
-    return urls
+        f.write('urls = ' + pformat(urls).replace('\n', '\n' + ' ' * len('urls = ')))
+    print 'Got URLs for {0}/{1} subjobs'.format(len(urls), sum(len(j.subjobs.select(status = 'completed')) for j in jobs))
+    return urls, failures

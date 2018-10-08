@@ -3,6 +3,7 @@
 import os, ROOT, pprint, glob
 from AnalysisUtils.data import DataLibrary
 from AGammaD0Tohhpi0.variables import variables
+import Reco16_Charm_MagUp_TupleURLs, Reco16_Charm_MagDown_TupleURLs
 
 datadir = os.environ.get('AGAMMAD0TOHHPI0DATADIR', 
                          '/nfs/lhcb/d2hh01/hhpi0/')
@@ -15,6 +16,10 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'MC_2016_pipipi0_HLT2TIS' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_Matched.root')),
              'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
              'MiniBias_2015' : ('pions_tuple_sel/DecayTree',) + tuple(glob.glob(os.path.join(datadir, '../minibias/2015/*/DVTuples*.root'))),
+             'Data_2016_Kpipi0_MagUp_full' : ('DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',)\
+                 + tuple(Reco16_Charm_MagUp_TupleURLs.urls[:3]),
+             'Data_2016_Kpipi0_MagDown_full' : ('DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',)\
+                 + tuple(Reco16_Charm_MagDown_TupleURLs.urls[:3]),
              }
 
 selection = 'BDT > -0.1'
