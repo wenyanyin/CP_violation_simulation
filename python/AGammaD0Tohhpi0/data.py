@@ -17,9 +17,9 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
              'MC_2016_pipipi0' : ('DecayTree', os.path.join(datadir, 'mc/DaVinciTuples_MC_S28_Matched_pipipi0.root')),
              'MiniBias_2015' : ('pions_tuple_sel/DecayTree',) + tuple(glob.glob(os.path.join(datadir, '../minibias/2015/*/DVTuples*.root'))),
              'Data_2016_Kpipi0_MagUp_full' : ('DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',)\
-                 + tuple(Reco16_Charm_MagUp_TupleURLs.urls[:3]),
+                 + tuple(Reco16_Charm_MagUp_TupleURLs.urls),
              'Data_2016_Kpipi0_MagDown_full' : ('DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',)\
-                 + tuple(Reco16_Charm_MagDown_TupleURLs.urls[:3]),
+                 + tuple(Reco16_Charm_MagDown_TupleURLs.urls),
              }
 
 selection = 'BDT > -0.1'

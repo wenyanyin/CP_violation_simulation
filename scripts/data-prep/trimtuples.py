@@ -62,7 +62,7 @@ def filter_2016_tuples() :
     weightsfile = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/tmva/20180702-Lewis/TMVAClassification_BDT_Kpipi0.weights.xml')
     for mag in 'Up', 'Down' :
         data = getattr(datalib, 'Data_2016_Kpipi0_Mag' + mag + '_full')()
-        filter_tuple_mva(data, weightsfile, 'BDT', os.path.join(datadir, 'data', 'Data_2016_Mag' + mag + '.root'),
+        filter_tuple_mva(data, weightsfile, 'BDT', os.path.join(datadir, 'data', 'Data_2016_Kpipi0_Mag' + mag + '.root'),
                          datalib.selection.split()[-1])
 
 if __name__ == '__main__' :
