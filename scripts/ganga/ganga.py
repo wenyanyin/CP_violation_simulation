@@ -94,3 +94,21 @@ def get_output_access_urls(jobs, outputfile) :
         f.write('urls = ' + pformat(urls).replace('\n', '\n' + ' ' * len('urls = ')))
     print 'Got URLs for {0}/{1} subjobs'.format(len(urls), sum(len(j.subjobs.select(status = 'completed')) for j in jobs))
     return urls, failures
+
+def get_output_lfns(jobs, outputfile) :
+    if not hasattr(jobs, '__iter__') :
+        jobs = [jobs]
+    lfns = []
+    failures = []
+    for job in jobs :
+        for sj in job.subjobs.select(status = 'completed') :
+            fout = sj.outputfiles[0]
+            try :
+                lfns.append(fout.lfn)
+            except :
+                failures.append(sj)
+    with open(outputfile, 'w') as f :
+        f.write('lfns = ' + pformat(lfns).replace('\n', '\n' + ' ' * len('lfns = ')))
+    print 'Got LFNs for {0}/{1} subjobs'.format(len(lfns), sum(len(j.subjobs.select(status = 'completed')) for j in jobs))
+    return lfns, failures
+    
