@@ -20,6 +20,8 @@ datapaths = {'Data_2015_pipipi0' : ('DecayTree', os.path.join(datadir, 'data/DaV
                  + tuple(Reco16_Charm_MagUp_TupleURLs.urls),
              'Data_2016_Kpipi0_MagDown_full' : ('DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',)\
                  + tuple(Reco16_Charm_MagDown_TupleURLs.urls),
+             'Data_2016_Kpipi0_MagUp' : ('DecayTree', os.path.join(datadir, 'data/Data_2016_Kpipi0_MagUp.root')),
+             'Data_2016_Kpipi0_MagDown' : ('DecayTree', os.path.join(datadir, 'data/Data_2016_Kpipi0_MagDown.root')),
              }
 
 selection = 'BDT > -0.1'
