@@ -30,7 +30,7 @@ for mag in 'Up', 'Down' :
          'files' : sorted(glob.glob(os.path.join(datadir, 'data/2015/mag{0}/*Kpipi0_BDT.root'.format(mag.lower()))))}
     mod2016 = __import__('AGammaD0Tohhpi0.Reco16_Charm_Mag{0}_TupleURLs'.format(mag), fromlist = ['urls'])
     datapaths['Data_2016_Kpipi0_Mag' + mag + '_full'] = {'tree' : 'DstarD0ToHHPi0_Kpipi0_R_LineTuple/DecayTree',
-                                                         'files' : [urls[0] for url in mod2016.urls.values() if urls]}
+                                                         'files' : [url[0] for url in mod2016.urls.values() if url]}
     datapaths['Data_2016_Kpipi0_Mag' + mag] = {'tree' : 'DecayTree', 
                                                'files' : (os.path.join(datadir, 'data/Data_2016_Kpipi0_Mag{0}.root'.format(mag)),)}
 

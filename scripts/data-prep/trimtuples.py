@@ -74,14 +74,14 @@ def filter_2016_tuples(overwrite = False) :
             os.makedirs(outputdir)
         mod2016 = __import__('AGammaD0Tohhpi0.Reco16_Charm_Mag{0}_TupleURLs'.format(mag), fromlist = ['urls'])
         nok = 0
-        for lfn, urls in mod2016.urls[:2] :
+        for lfn, urls in mod2016.urls.items() :
             print 'Process LFN', lfn
-            if not urls :
-                continue
             outputfile = os.path.join(outputdir, lfn[1:].replace('/', '_').replace('.root', '_Kpipi0.root'))
             if not overwrite and os.path.exists(outputfile) and is_tfile_ok(outputfile) :
                 print 'Output already exists, skipping'
                 nok += 1
+                continue
+            if not urls :
                 continue
             ok = False
             # Find a URL that works.
@@ -100,5 +100,6 @@ def filter_2016_tuples(overwrite = False) :
             nok += 1
             filter_tuple_mva(tree, weightsfile, 'BDT', outputfile, bdtcut)
         print 'Successfully filtered', str(nok) + '/' + str(len(mod2016.urls)), 'files'
+
 if __name__ == '__main__' :
     filter_2016_tuples()
