@@ -58,8 +58,8 @@ for dtt in tuples :
     dtt.addBranches({'lab0' : dtt.Decay.replace('^', '')})
     dtt.lab0.addTupleTool(tttistos)
     dtt.addTupleTool(tttime)
+    # Still need TupleToolPid for the _ID branches.
     dtt.ToolList.remove('TupleToolANNPID')
-    dtt.ToolList.remove('TupleToolPid')
     dtt.addTupleTool(ttpid)
     dtt.ToolList += ['TupleToolPrimaries',
                      'TupleToolTrackInfo']

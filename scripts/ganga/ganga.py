@@ -65,7 +65,7 @@ def make_jobs() :
     for fname in glob.glob(os.path.join(optsdir, 'data/real/Reco16*Charm*')) :
         if '_DV' in fname or '_settings' in fname :
             continue
-        j = make_job(os.path.split(fname)[1], fname, 30, False, diracoutput = True)
+        j = make_job(os.path.split(fname)[1], fname, 20, False, diracoutput = True)
         j = j.copy()
         j.splitter = None
         j.backend = Local()
