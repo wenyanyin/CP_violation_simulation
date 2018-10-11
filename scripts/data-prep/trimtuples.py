@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import os, ROOT, shutil, glob
-from AnalysisUtils.treeutils import copy_tree
+from AnalysisUtils.treeutils import copy_tree, is_tfile_ok
 from AGammaD0Tohhpi0.data import datadir, datalib
 from AnalysisUtils.addmva import make_mva_tree
+from AGammaD0Tohhpi0.selection import bdtcut
 
 def trim_file(infile) :
     removebranches = ('lab[0-9]_MC12TuneV[0-9]_ProbNN',
@@ -50,20 +51,54 @@ def filter_tuple_mva(inputtree, weightsfile, weightsvar, outputfile, cut) :
     make_mva_tree(inputtree, weightsfile, weightsvar, weightsvar + 'Tree', outputfile + '.weights')
     mvafile = ROOT.TFile.Open(outputfile + '.weights')
     mvatree = mvafile.Get(weightsvar + 'Tree')
-    inputtree.AddFriend(mvatree)
-    fout = ROOT.TFile.Open(outputfile, 'recreate')
+    evtlist = ROOT.TEventList('evtlist')
     sel = weightsvar + ' >= ' + str(cut)
+    mvatree.Draw('>>' + evtlist.GetName(), sel)
+    inputtree.SetEventList(evtlist)
+    mvatree.SetEventList(evtlist)
+    fout = ROOT.TFile.Open(outputfile, 'recreate')
     print 'Filter tree', inputtree, 'with selection', sel
-    treeout = inputtree.CopyTree(sel)
+    treeout = inputtree.CopyTree('')
+    mvatreeout = mvatree.CopyTree('')
     fout.Write()
     fout.Close()
+    print 'Wrote file', outputfile
 
-def filter_2016_tuples() :
+def filter_2016_tuples(overwrite = False) :
     weightsfile = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/tmva/20180702-Lewis/TMVAClassification_BDT_Kpipi0.weights.xml')
     for mag in 'Up', 'Down' :
-        data = getattr(datalib, 'Data_2016_Kpipi0_Mag' + mag + '_full')()
-        filter_tuple_mva(data, weightsfile, 'BDT', os.path.join(datadir, 'data', 'Data_2016_Kpipi0_Mag' + mag + '.root'),
-                         datalib.selection.split()[-1])
-
+        print 'Filter Mag' + mag, 'files'
+        datainfo = datalib.get_data_info('Data_2016_Kpipi0_Mag' + mag + '_full')
+        outputdir = os.path.join(datadir, 'data', '2016', 'mag' + mag.lower())
+        if not os.path.exists(outputdir) :
+            os.makedirs(outputdir)
+        mod2016 = __import__('AGammaD0Tohhpi0.Reco16_Charm_Mag{0}_TupleURLs'.format(mag), fromlist = ['urls'])
+        nok = 0
+        for lfn, urls in mod2016.urls[:2] :
+            print 'Process LFN', lfn
+            if not urls :
+                continue
+            outputfile = os.path.join(outputdir, lfn[1:].replace('/', '_').replace('.root', '_Kpipi0.root'))
+            if not overwrite and os.path.exists(outputfile) and is_tfile_ok(outputfile) :
+                print 'Output already exists, skipping'
+                nok += 1
+                continue
+            ok = False
+            # Find a URL that works.
+            for url in urls :
+                if is_tfile_ok(url) :
+                    ok = True
+                    break
+            if not ok :
+                print 'No working URL'
+                continue
+            inputfile = ROOT.TFile.Open(url)
+            tree = inputfile.Get(datainfo['tree'])
+            if not tree :
+                print 'No tree named {0!r} in file {1}'.format(datainfo['tree'], url)
+                continue
+            nok += 1
+            filter_tuple_mva(tree, weightsfile, 'BDT', outputfile, bdtcut)
+        print 'Successfully filtered', str(nok) + '/' + str(len(mod2016.urls)), 'files'
 if __name__ == '__main__' :
     filter_2016_tuples()
