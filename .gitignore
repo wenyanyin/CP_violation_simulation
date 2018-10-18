@@ -1,2 +1,8 @@
 *~
 *.pyc
+*.root
+ampFit
+AllKnownDecayTrees.txt
+protoFitAmplitudeFile.txt
+.sconsign.dblite
+stdout
