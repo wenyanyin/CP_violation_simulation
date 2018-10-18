@@ -8,7 +8,7 @@ mm = mp.replace('1_pi#', '2_pi~')
 m0 = mp.replace('3_pi0', '2_pi~')
 
 tree = ROOT.TChain('DalitzEventList')
-tree.Add("KKpipi_*.root")
+tree.Add("pipipi0_*.root")
 
 canv = ROOT.TCanvas('canv', '', 600, 600)
 for name, form in {'dalitz' : mm + ':' + mp,

@@ -158,33 +158,21 @@ int ampFit(){
 
   NamedParameter<double>  lambda("lambda", 1.);
 
-  NamedParameter<int> MakeIntegrators("MakeIntegrators", 1);
-  bool makeIntegrators = (int) MakeIntegrators;
-  cout << "MakeIntegrator= " << MakeIntegrators << endl;
+  //NamedParameter<int> MakeIntegrators("MakeIntegrators", 1);
+  //bool makeIntegrators = (int) MakeIntegrators;
+  //cout << "MakeIntegrator= " << MakeIntegrators << endl;
 
   NamedParameter<string> InputFileName("InputFileName", (std::string) "");
   bool generateNew = (std::string) InputFileName == "";
 
   string InputFileName1 = ((string)InputFileName) + "_1.root";
-  string InputFileName2 = ((string)InputFileName) + "_2.root";
-  string InputFileName3 = ((string)InputFileName) + "_3.root";
-  string InputFileName4 = ((string)InputFileName) + "_4.root";
-  string InputFileName5 = ((string)InputFileName) + "_5.root";
 
   NamedParameter<string> IntegratorEventFile("IntegratorEventFile"
 					     , (std::string) "SignalIntegrationEvents"
 					     , (char*) 0);
   string SgIntegratorEventFile1 = "Sg" + ((string)IntegratorEventFile) + "_1.root";
-  string SgIntegratorEventFile2 = "Sg" + ((string)IntegratorEventFile) + "_2.root";
-  string SgIntegratorEventFile3 = "Sg" + ((string)IntegratorEventFile) + "_3.root";
-  string SgIntegratorEventFile4 = "Sg" + ((string)IntegratorEventFile) + "_4.root";
-  string SgIntegratorEventFile5 = "Sg" + ((string)IntegratorEventFile) + "_5.root";
 
   string BgIntegratorEventFile1 = "Bg" + ((string)IntegratorEventFile) + "_1.root";
-  string BgIntegratorEventFile2 = "Bg" + ((string)IntegratorEventFile) + "_2.root";
-  string BgIntegratorEventFile3 = "Bg" + ((string)IntegratorEventFile) + "_3.root";
-  string BgIntegratorEventFile4 = "Bg" + ((string)IntegratorEventFile) + "_4.root";
-  string BgIntegratorEventFile5 = "Bg" + ((string)IntegratorEventFile) + "_5.root";
 
 
 
@@ -205,7 +193,7 @@ int ampFit(){
   cout << " got event pattern: " << pat << endl;
 
 
-  DalitzEventList eventList1, eventList2, eventList3, eventList4, eventList5;
+  DalitzEventList eventList1 ;
 
   cout << "1 pset pointer in default " << MinuitParameterSet::getDefaultSet() << endl;
   cout << "1 pset pointer in ampsFit " << &fitMPS << endl;
@@ -218,21 +206,6 @@ int ampFit(){
     eventList1.fromFile(InputFileName1);
     cout << " I've got " << eventList1.size() << " events (1)." << endl;
  
-    cout << "reading events from file " << InputFileName2 << endl;
-    eventList2.fromFile(InputFileName2);
-    cout << " I've got " << eventList2.size() << " events (2)." << endl;
- 
-    cout << "reading events from file " << InputFileName3 << endl;
-    eventList3.fromFile(InputFileName3);
-    cout << " I've got " << eventList3.size() << " events (3)." << endl;
-  
-    cout << "reading events from file " << InputFileName4 << endl;
-    eventList4.fromFile(InputFileName4);
-    cout << " I've got " << eventList4.size() << " events (4)." << endl;
-
-    cout << "reading events from file " << InputFileName5 << endl;
-    eventList5.fromFile(InputFileName5);
-    cout << " I've got " << eventList5.size() << " events (5)." << endl;
  }
 
   if(generateNew){
@@ -240,23 +213,9 @@ int ampFit(){
 
     cout << "Generating " << Nevents << " signal events (1)." << endl;
     sg.FillEventList(eventList1, Nevents);
-    if((int) saveEvents)eventList1.save("KKpipi_1.root");
+    if((int) saveEvents)
+      eventList1.save("pipipi0_1.root");
 
-    cout << "Generating " << Nevents << " signal events (2)." << endl;
-    sg.FillEventList(eventList2, Nevents);
-    if((int) saveEvents)eventList2.save("KKpipi_2.root");
-
-    cout << "Generating " << Nevents << " signal events (3)." << endl;
-    sg.FillEventList(eventList3, Nevents);
-    if((int) saveEvents)eventList3.save("KKpipi_3.root");
-
-    cout << "Generating " << Nevents << " signal events (4)." << endl;
-    sg.FillEventList(eventList4, Nevents);
-    if((int) saveEvents)eventList4.save("KKpipi_4.root");
-
-    cout << "Generating " << Nevents << " signal events (5)." << endl;
-    sg.FillEventList(eventList5, Nevents);
-    if((int) saveEvents)eventList4.save("KKpipi_5.root");
   }
   
   //DalitzHistoSet datH = eventList.histoSet();
@@ -276,204 +235,204 @@ int ampFit(){
 	       , (std::string) IntegratorEventFile); 
   */
 
-  FitAmpSum ampSum1(pat, &fitMPS);
-  FitAmpIncoherentSum ampSumBg1(pat, &dummy, "Inco1_");
+//   FitAmpSum ampSum1(pat, &fitMPS);
+//   FitAmpIncoherentSum ampSumBg1(pat, &dummy, "Inco1_");
 
-#ifdef MULTIAMPS
-  /*
-  FitAmpSum ampSum2(pat, &fitMPS);
-  FitAmpSum ampSum3(pat, &fitMPS);
-  FitAmpSum ampSum4(pat, &fitMPS);
-  FitAmpSum ampSum5(pat, &fitMPS);
+// #ifdef MULTIAMPS
+//   /*
+//   FitAmpSum ampSum2(pat, &fitMPS);
+//   FitAmpSum ampSum3(pat, &fitMPS);
+//   FitAmpSum ampSum4(pat, &fitMPS);
+//   FitAmpSum ampSum5(pat, &fitMPS);
 
-  FitAmpIncoherentSum ampSumBg2(pat, &dummy, "Inco2_");
-  FitAmpIncoherentSum ampSumBg3(pat, &dummy, "Inco3_");
-  FitAmpIncoherentSum ampSumBg4(pat, &dummy, "Inco4_");
-  FitAmpIncoherentSum ampSumBg5(pat, &dummy, "Inco5_");
-  */
-#endif
+//   FitAmpIncoherentSum ampSumBg2(pat, &dummy, "Inco2_");
+//   FitAmpIncoherentSum ampSumBg3(pat, &dummy, "Inco3_");
+//   FitAmpIncoherentSum ampSumBg4(pat, &dummy, "Inco4_");
+//   FitAmpIncoherentSum ampSumBg5(pat, &dummy, "Inco5_");
+//   */
+// #endif
 
-  counted_ptr<FitAmpSum> ampSum2Ptr = ampSum1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSum3Ptr = ampSum1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSum4Ptr = ampSum1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSum5Ptr = ampSum1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSum2Ptr = ampSum1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSum3Ptr = ampSum1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSum4Ptr = ampSum1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSum5Ptr = ampSum1.GetCloneSameFitParameters();
 
-  counted_ptr<FitAmpSum> ampSumBg2Ptr = ampSumBg1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSumBg3Ptr = ampSumBg1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSumBg4Ptr = ampSumBg1.GetCloneSameFitParameters();
-  counted_ptr<FitAmpSum> ampSumBg5Ptr = ampSumBg1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSumBg2Ptr = ampSumBg1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSumBg3Ptr = ampSumBg1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSumBg4Ptr = ampSumBg1.GetCloneSameFitParameters();
+//   counted_ptr<FitAmpSum> ampSumBg5Ptr = ampSumBg1.GetCloneSameFitParameters();
  
 
-  FitParameter sgFrac("SignalFraction");
+//   FitParameter sgFrac("SignalFraction");
 
-  AmpsPdf ampsSg1(pat, &ampSum1
-	       , integPrecision
-	       , integMethod
-		, SgIntegratorEventFile1, true, &fitMPS); 
-
-
-#ifdef MULTIAMPS
-  // Note: Crash also occurs if we use the same ampSum in each AmpsPdf
-  AmpsPdf ampsSg2(pat, ampSum2Ptr.get()      // <<< putting ampSum1 here also crashes.
-	       , integPrecision
-	       , integMethod
-	       , SgIntegratorEventFile2, true, &fitMPS); 
-
-  AmpsPdf ampsSg3(pat, ampSum3Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , SgIntegratorEventFile3, true, &fitMPS); 
-
-  AmpsPdf ampsSg4(pat, ampSum4Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , SgIntegratorEventFile4, true, &fitMPS); 
-
-  AmpsPdf ampsSg5(pat, ampSum5Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , SgIntegratorEventFile5, true, &fitMPS); 
-#endif
-  AmpsPdf ampsBg1(pat, &ampSumBg1
-	       , integPrecision
-	       , integMethod
-		, BgIntegratorEventFile1, true, &fitMPS); 
+//   AmpsPdf ampsSg1(pat, &ampSum1
+// 	       , integPrecision
+// 	       , integMethod
+// 		, SgIntegratorEventFile1, true, &fitMPS); 
 
 
-#ifdef MULTIAMPS
-  // Note: Crash also occurs if we use the same ampSum in each AmpsPdf
-  AmpsPdf ampsBg2(pat, ampSumBg2Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , BgIntegratorEventFile2, true, &fitMPS); 
+// #ifdef MULTIAMPS
+//   // Note: Crash also occurs if we use the same ampSum in each AmpsPdf
+//   AmpsPdf ampsSg2(pat, ampSum2Ptr.get()      // <<< putting ampSum1 here also crashes.
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , SgIntegratorEventFile2, true, &fitMPS); 
 
-  AmpsPdf ampsBg3(pat, ampSumBg3Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , BgIntegratorEventFile3, true, &fitMPS); 
+//   AmpsPdf ampsSg3(pat, ampSum3Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , SgIntegratorEventFile3, true, &fitMPS); 
 
-  AmpsPdf ampsBg4(pat, ampSumBg4Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , BgIntegratorEventFile4, true, &fitMPS); 
+//   AmpsPdf ampsSg4(pat, ampSum4Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , SgIntegratorEventFile4, true, &fitMPS); 
 
-  AmpsPdf ampsBg5(pat, ampSumBg5Ptr.get()
-	       , integPrecision
-	       , integMethod
-	       , BgIntegratorEventFile5, true, &fitMPS); 
-#endif
-
-
-  DalitzSumPdf amps1(sgFrac, ampsSg1, ampsBg1);
-#ifdef MULTIAMPS
-  DalitzSumPdf amps2(sgFrac, ampsSg2, ampsBg2);
-  DalitzSumPdf amps3(sgFrac, ampsSg3, ampsBg3);
-  DalitzSumPdf amps4(sgFrac, ampsSg4, ampsBg4);
-  DalitzSumPdf amps5(sgFrac, ampsSg5, ampsBg5);
-#endif
-
-  cout << "3 pset pointer in default " << MinuitParameterSet::getDefaultSet() << endl;
-  cout << "3 pset pointer in ampsFit " << &fitMPS << endl;
-
-  cout << "3 sizes " << MinuitParameterSet::getDefaultSet()->size()
-       << ", " << fitMPS.size() << endl;
-
-  if(! makeIntegrators){
-    ampsSg1.setIntegratorFileName("sgIntegrator1");
-#ifdef MULTIAMPS
-    ampsSg2.setIntegratorFileName("sgIntegrator2");
-    ampsSg3.setIntegratorFileName("sgIntegrator3");
-    ampsSg4.setIntegratorFileName("sgIntegrator4");
-    ampsSg5.setIntegratorFileName("sgIntegrator5");
-#endif
-  }
-  if(! makeIntegrators){
-    ampsBg1.setIntegratorFileName("bgIntegrator1");
-#ifdef MULTIAMPS
-    ampsBg2.setIntegratorFileName("bgIntegrator2");
-    ampsBg3.setIntegratorFileName("bgIntegrator3");
-    ampsBg4.setIntegratorFileName("bgIntegrator4");
-    ampsBg5.setIntegratorFileName("bgIntegrator5");
-#endif
-  }
+//   AmpsPdf ampsSg5(pat, ampSum5Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , SgIntegratorEventFile5, true, &fitMPS); 
+// #endif
+//   AmpsPdf ampsBg1(pat, &ampSumBg1
+// 	       , integPrecision
+// 	       , integMethod
+// 		, BgIntegratorEventFile1, true, &fitMPS); 
 
 
-#ifdef MULTIAMPS
-  /* this also crashes
-  Neg2LL fcn1(amps1, eventList1);//, &fitMPS);
-  Neg2LL fcn2(amps1, eventList2);//, &fitMPS);
-  Neg2LL fcn3(amps1, eventList3);//, &fitMPS);
-  Neg2LL fcn4(amps1, eventList4);//, &fitMPS);
-  */
+// #ifdef MULTIAMPS
+//   // Note: Crash also occurs if we use the same ampSum in each AmpsPdf
+//   AmpsPdf ampsBg2(pat, ampSumBg2Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , BgIntegratorEventFile2, true, &fitMPS); 
 
-  Neg2LL fcn1(amps1, eventList1, &fitMPS);
-  Neg2LL fcn2(amps2, eventList2, &fitMPS);
-  Neg2LL fcn3(amps3, eventList3, &fitMPS);
-  Neg2LL fcn4(amps4, eventList4, &fitMPS);
-  Neg2LL fcn5(amps5, eventList5, &fitMPS);
+//   AmpsPdf ampsBg3(pat, ampSumBg3Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , BgIntegratorEventFile3, true, &fitMPS); 
 
+//   AmpsPdf ampsBg4(pat, ampSumBg4Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , BgIntegratorEventFile4, true, &fitMPS); 
 
-  LASSO lasso(&ampsSg3, lambda);
-
-  //Neg2LLSum fcn(&fcn1, &fcn2, &fcn3, &fcn4, &fcn5, &lasso, &fitMPS);
-  //Neg2LLSum fcn(&fcn1, &fcn2,  &fcn3, &fcn4, &lasso, &fitMPS);
-  Neg2LLSum fcn(&fitMPS, &fcn1, &fcn2,  &fcn3, &fcn4, &lasso);
-#else
-  Neg2LL fcn(amps1, eventList1);
-#endif
-
-  if((int) doNormCheck){
-    DalitzPdfNormChecker nc(&amps1, pat);
-    nc.checkNorm();
-  }
+//   AmpsPdf ampsBg5(pat, ampSumBg5Ptr.get()
+// 	       , integPrecision
+// 	       , integMethod
+// 	       , BgIntegratorEventFile5, true, &fitMPS); 
+// #endif
 
 
+//   DalitzSumPdf amps1(sgFrac, ampsSg1, ampsBg1);
+// #ifdef MULTIAMPS
+//   DalitzSumPdf amps2(sgFrac, ampsSg2, ampsBg2);
+//   DalitzSumPdf amps3(sgFrac, ampsSg3, ampsBg3);
+//   DalitzSumPdf amps4(sgFrac, ampsSg4, ampsBg4);
+//   DalitzSumPdf amps5(sgFrac, ampsSg5, ampsBg5);
+// #endif
 
-  Minimiser mini(&fcn);
+//   cout << "3 pset pointer in default " << MinuitParameterSet::getDefaultSet() << endl;
+//   cout << "3 pset pointer in ampsFit " << &fitMPS << endl;
 
-  mini.doFit();
+//   cout << "3 sizes " << MinuitParameterSet::getDefaultSet()->size()
+//        << ", " << fitMPS.size() << endl;
 
-  mini.printResultVsInput();
-  ampsSg1.saveEachAmpsHistograms("singleAmpHistos");
+//   if(! makeIntegrators){
+//     ampsSg1.setIntegratorFileName("sgIntegrator1");
+// #ifdef MULTIAMPS
+//     ampsSg2.setIntegratorFileName("sgIntegrator2");
+//     ampsSg3.setIntegratorFileName("sgIntegrator3");
+//     ampsSg4.setIntegratorFileName("sgIntegrator4");
+//     ampsSg5.setIntegratorFileName("sgIntegrator5");
+// #endif
+//   }
+//   if(! makeIntegrators){
+//     ampsBg1.setIntegratorFileName("bgIntegrator1");
+// #ifdef MULTIAMPS
+//     ampsBg2.setIntegratorFileName("bgIntegrator2");
+//     ampsBg3.setIntegratorFileName("bgIntegrator3");
+//     ampsBg4.setIntegratorFileName("bgIntegrator4");
+//     ampsBg5.setIntegratorFileName("bgIntegrator5");
+// #endif
+//   }
 
-  if(makeIntegrators){
-    cout << "now saving all integrators" <<endl;
-    ampsSg1.saveIntegrator("sgIntegrator1");
-#ifdef MULTIAMPS
-    ampsSg2.saveIntegrator("sgIntegrator2");
-    ampsSg3.saveIntegrator("sgIntegrator3");
-    ampsSg4.saveIntegrator("sgIntegrator4");
-    ampsSg5.saveIntegrator("sgIntegrator5");
-#endif
-    ampsBg1.saveIntegrator("sgIntegrator1");
-#ifdef MULTIAMPS
-    ampsBg2.saveIntegrator("bgIntegrator2");
-    ampsBg3.saveIntegrator("bgIntegrator3");
-    ampsBg4.saveIntegrator("bgIntegrator4");
-    ampsBg5.saveIntegrator("bgIntegrator5");
-#endif
-  }
 
-  cout << "now calling doFinalStat" << endl;
+// #ifdef MULTIAMPS
+//   /* this also crashes
+//   Neg2LL fcn1(amps1, eventList1);//, &fitMPS);
+//   Neg2LL fcn2(amps1, eventList2);//, &fitMPS);
+//   Neg2LL fcn3(amps1, eventList3);//, &fitMPS);
+//   Neg2LL fcn4(amps1, eventList4);//, &fitMPS);
+//   */
 
-  if((bool) doFinalStats){
-    ampsSg1.doFinalStats(&mini);
-#ifdef MULTIAMPS
-    ampsSg2.doFinalStats(&mini);
-    ampsSg3.doFinalStats(&mini);
-    ampsSg4.doFinalStats(&mini);
-    ampsSg5.doFinalStats(&mini);
-#endif
-  }
+//   Neg2LL fcn1(amps1, eventList1, &fitMPS);
+//   Neg2LL fcn2(amps2, eventList2, &fitMPS);
+//   Neg2LL fcn3(amps3, eventList3, &fitMPS);
+//   Neg2LL fcn4(amps4, eventList4, &fitMPS);
+//   Neg2LL fcn5(amps5, eventList5, &fitMPS);
 
-  cout<<"final fcn1 getVal() "<< fcn1.getVal()<<endl;
-#ifdef MULTIAMPS
-  cout<<"final fcn2 getVal() "<< fcn2.getVal()<<endl;
-  cout<<"final fcn3 getVal() "<< fcn3.getVal()<<endl;
-  cout<<"final fcn4 getVal() "<< fcn4.getVal()<<endl;
-  cout<<"final fcn5 getVal() "<< fcn5.getVal()<<endl;
-#endif
-  //return 0;
+
+//   LASSO lasso(&ampsSg3, lambda);
+
+//   //Neg2LLSum fcn(&fcn1, &fcn2, &fcn3, &fcn4, &fcn5, &lasso, &fitMPS);
+//   //Neg2LLSum fcn(&fcn1, &fcn2,  &fcn3, &fcn4, &lasso, &fitMPS);
+//   Neg2LLSum fcn(&fitMPS, &fcn1, &fcn2,  &fcn3, &fcn4, &lasso);
+// #else
+//   Neg2LL fcn(amps1, eventList1);
+// #endif
+
+//   if((int) doNormCheck){
+//     DalitzPdfNormChecker nc(&amps1, pat);
+//     nc.checkNorm();
+//   }
+
+
+
+//   Minimiser mini(&fcn);
+
+//   mini.doFit();
+
+//   mini.printResultVsInput();
+//   ampsSg1.saveEachAmpsHistograms("singleAmpHistos");
+
+//   if(makeIntegrators){
+//     cout << "now saving all integrators" <<endl;
+//     ampsSg1.saveIntegrator("sgIntegrator1");
+// #ifdef MULTIAMPS
+//     ampsSg2.saveIntegrator("sgIntegrator2");
+//     ampsSg3.saveIntegrator("sgIntegrator3");
+//     ampsSg4.saveIntegrator("sgIntegrator4");
+//     ampsSg5.saveIntegrator("sgIntegrator5");
+// #endif
+//     ampsBg1.saveIntegrator("sgIntegrator1");
+// #ifdef MULTIAMPS
+//     ampsBg2.saveIntegrator("bgIntegrator2");
+//     ampsBg3.saveIntegrator("bgIntegrator3");
+//     ampsBg4.saveIntegrator("bgIntegrator4");
+//     ampsBg5.saveIntegrator("bgIntegrator5");
+// #endif
+//   }
+
+//   cout << "now calling doFinalStat" << endl;
+
+//   if((bool) doFinalStats){
+//     ampsSg1.doFinalStats(&mini);
+// #ifdef MULTIAMPS
+//     ampsSg2.doFinalStats(&mini);
+//     ampsSg3.doFinalStats(&mini);
+//     ampsSg4.doFinalStats(&mini);
+//     ampsSg5.doFinalStats(&mini);
+// #endif
+//   }
+
+//   cout<<"final fcn1 getVal() "<< fcn1.getVal()<<endl;
+// #ifdef MULTIAMPS
+//   cout<<"final fcn2 getVal() "<< fcn2.getVal()<<endl;
+//   cout<<"final fcn3 getVal() "<< fcn3.getVal()<<endl;
+//   cout<<"final fcn4 getVal() "<< fcn4.getVal()<<endl;
+//   cout<<"final fcn5 getVal() "<< fcn5.getVal()<<endl;
+// #endif
+//   //return 0;
 
   cout << " ampFit done. Took " << (time(0) - startTime)/60. 
        << " min. Returning 0." << endl;
