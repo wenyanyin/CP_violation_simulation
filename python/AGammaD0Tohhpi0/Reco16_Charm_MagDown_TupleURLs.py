@@ -273,6 +273,7 @@ urls = \
  '/lhcb/user/m/malexand/2018_10/231383/231383015/DaVinciTuples.root': ['root://xrootd-lhcb.cr.cnaf.infn.it//storage/gpfs_lhcb/lhcb/user/m/malexand/2018_10/231383/231383015/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383026/DaVinciTuples.root': ['root://shark12.grid.surfsara.nl:1094/pnfs/grid.sara.nl/data/lhcb/user/m/malexand/2018_10/231383/231383026/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383040/DaVinciTuples.root': ['root://clhcbstager.ads.rl.ac.uk//castor/ads.rl.ac.uk/prod/lhcb/user/m/malexand/2018_10/231383/231383040/DaVinciTuples.root?svcClass=lhcbUser'],
+ '/lhcb/user/m/malexand/2018_10/231383/231383060/DaVinciTuples.root': ['root://eoslhcb.cern.ch//eos/lhcb/grid/user/lhcb/user/m/malexand/2018_10/231383/231383060/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383076/DaVinciTuples.root': ['root://xrootd-lhcb.cr.cnaf.infn.it//storage/gpfs_lhcb/lhcb/user/m/malexand/2018_10/231383/231383076/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383088/DaVinciTuples.root': ['root://eoslhcb.cern.ch//eos/lhcb/grid/user/lhcb/user/m/malexand/2018_10/231383/231383088/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383103/DaVinciTuples.root': ['root://lhcb-sdpd21.t1.grid.kiae.ru:1094/t1.grid.kiae.ru/data/lhcb/lhcbuser/lhcb/user/m/malexand/2018_10/231383/231383103/DaVinciTuples.root'],
@@ -479,4 +480,5 @@ urls = \
  '/lhcb/user/m/malexand/2018_10/231383/231383934/DaVinciTuples.root': ['root://clhcbstager.ads.rl.ac.uk//castor/ads.rl.ac.uk/prod/lhcb/user/m/malexand/2018_10/231383/231383934/DaVinciTuples.root?svcClass=lhcbUser'],
  '/lhcb/user/m/malexand/2018_10/231383/231383935/DaVinciTuples.root': ['root://eoslhcb.cern.ch//eos/lhcb/grid/user/lhcb/user/m/malexand/2018_10/231383/231383935/DaVinciTuples.root'],
  '/lhcb/user/m/malexand/2018_10/231383/231383936/DaVinciTuples.root': ['root://clhcbstager.ads.rl.ac.uk//castor/ads.rl.ac.uk/prod/lhcb/user/m/malexand/2018_10/231383/231383936/DaVinciTuples.root?svcClass=lhcbUser'],
- '/lhcb/user/m/malexand/2018_10/231383/231383937/DaVinciTuples.root': ['root://xrootd-lhcb.cr.cnaf.infn.it//storage/gpfs_lhcb/lhcb/user/m/malexand/2018_10/231383/231383937/DaVinciTuples.root']}
+ '/lhcb/user/m/malexand/2018_10/231383/231383937/DaVinciTuples.root': ['root://xrootd-lhcb.cr.cnaf.infn.it//storage/gpfs_lhcb/lhcb/user/m/malexand/2018_10/231383/231383937/DaVinciTuples.root'],
+ '/lhcb/user/m/malexand/2018_10/232379/232379060/DaVinciTuples.root': ['root://clhcbstager.ads.rl.ac.uk//castor/ads.rl.ac.uk/prod/lhcb/user/m/malexand/2018_10/232379/232379060/DaVinciTuples.root?svcClass=lhcbUser']}
