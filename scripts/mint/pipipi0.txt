@@ -34,7 +34,7 @@ useAnalyticGradient 1
 "Phases given in"       "rad"
 "Event Pattern"         421 211 -211 111
 
-"Nevents"               10000
+"Nevents"               1000
 
 "IntegPrecision"        1.0e-1
 "IntegMethod"           "efficient"
