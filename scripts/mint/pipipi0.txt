@@ -34,7 +34,7 @@ useAnalyticGradient 1
 "Phases given in"       "rad"
 "Event Pattern"         421 211 -211 111
 
-"Nevents"               100000
+"Nevents"               10000
 
 "IntegPrecision"        1.0e-1
 "IntegMethod"           "efficient"
@@ -53,3 +53,10 @@ SignalFraction								2      0.75    0.05      0        1
 "D0->rho(770)0(->pi+,pi-),pi0_Im"					0	0.152	0.05
 "D0->rho(770)-(->pi-,pi0),pi+_Re"					0 	0.730	0.05
 "D0->rho(770)-(->pi-,pi0),pi+_Im"					0	-0.02	0.05
+
+"Dbar0->rho(770)-(->pi-,pi0),pi+_Re"					1	1	0.1
+"Dbar0->rho(770)-(->pi-,pi0),pi+_Im"					1	0	0.1
+"Dbar0->rho(770)0(->pi+,pi-),pi0_Re"					0	0.529   0.05
+"Dbar0->rho(770)0(->pi+,pi-),pi0_Im"					0	0.152	0.05
+"Dbar0->rho(770)+(->pi+,pi0),pi-_Re"					0 	0.730	0.05
+"Dbar0->rho(770)+(->pi+,pi0),pi-_Im"					0	-0.02	0.05

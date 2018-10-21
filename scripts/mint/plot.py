@@ -11,9 +11,10 @@ tree = ROOT.TChain('DalitzEventList')
 tree.Add("pipipi0_*.root")
 
 canv = ROOT.TCanvas('canv', '', 600, 600)
-for name, form in {'dalitz' : mm + ':' + mp,
-                   'mplus' : mp,
-                   'mminus' : mm,
-                   'mzero' : m0}.items() :
-    tree.Draw(form, '', 'colz')
-    canv.SaveAs(name + '.pdf')
+for tag in '-1', '+1' :
+    for name, form in {'dalitz' : mm + ':' + mp,
+                       'mplus' : mp,
+                       'mminus' : mm,
+                       'mzero' : m0}.items() :
+        tree.Draw(form, 'tag == ' + tag, 'colz')
+        canv.SaveAs(name + '_tag_' + tag + '.pdf')
