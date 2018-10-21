@@ -81,12 +81,13 @@ int ampFit(){
   DalitzEventPattern cpPat(pat) ;
   cpPat[0].antiThis() ;
 
-  //SignalGenerator sg(pat);
-  //SignalGenerator sgcp(cpPat);
+  SignalGenerator genD0(pat);
+  SignalGenerator genD0bar(cpPat);
 
   NamedParameter<int> doNormCheck("doNormCheck", 0);
   NamedParameter<int> saveEvents("SaveEvents", 1);
   NamedParameter<int> doFinalStats("DoFinalStats", 1);
+  NamedParameter<int> genTimeDependent("genTimeDependent", 0);
   cout << " got event pattern: " << pat << endl;
 
 
@@ -95,31 +96,41 @@ int ampFit(){
   cout << "Generating " << Nevents << " signal events (1)." << endl;
   list<int> tags ;
   list<double> taus ;
+  int startTimeGen(time(0)) ;
   for(int i = 0 ; i < Nevents ; ++i){
     // Decide if it's a D0 or D0bar that's being generated.
     DalitzEventPattern* evtpat(&pat) ;
+    SignalGenerator* gen(&genD0) ;
     int tag = 1 ;
     if(ranLux.Rndm() > 0.5){
       evtpat = &cpPat ;
+      gen = &genD0bar ;
       tag = -1 ;
     }
     tags.push_back(tag) ;
 
     // Generate the decay time of the candidate.
-    double tau = ranLux.Exp(0.4101e-3) ;
+    double lifetime = 0.4101 ; // ps
+    double tau = ranLux.Exp(lifetime) ;
     taus.push_back(tau) ;
 
-    // Make the amplitude model a combination of D0 and D0bar as a function of
-    // the generated decay time.
-    complex<double> coeffprod(1., 0.) ;
-    complex<double> coeffmix(0., 0.) ;
-
-    complex<double> ratio(coeffmix/coeffprod) ;
-    SignalGenerator gen(*evtpat,
-			sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()), // magnitude.
-			ratio.real() != 0. ? atan(ratio.imag()/ratio.real()) : TMath::Pi()/2. // phase.
-			) ;
-    gen.FillEventList(eventList1, 1);
+    cout << "Generating candidate " << i << " (" << (time(0)-startTimeGen)/float(i) << " s per candidate)" << endl ;
+    if(genTimeDependent){
+      // Make the amplitude model a combination of D0 and D0bar as a function of
+      // the generated decay time.
+      complex<double> coeffprod(1., 0.) ;
+      complex<double> coeffmix(0., 0.) ;
+      
+      complex<double> ratio(coeffmix/coeffprod) ;
+      SignalGenerator gentimedep(*evtpat,
+				 sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()), // magnitude.
+				 ratio.real() != 0. ? atan(ratio.imag()/ratio.real()) : TMath::Pi()/2. // phase.
+				 ) ;
+      gentimedep.FillEventList(eventList1, 1);
+    }
+    else {
+      gen->FillEventList(eventList1, 1);
+    }
   }
   
   if((int) saveEvents){
