@@ -1,7 +1,23 @@
 #!/bin/bash
 
 if [ -z "$(which scons 2> /dev/null)" ] ; then
-    sudo apt-get install scons
+    # For Ubuntu/Debian, assuming you have root access.
+    if [ ! -z "$(which apt-get 2> /dev/null)" ] ; then
+	sudo apt-get install scons
+    else
+	if [ ! -e ~/lib/scons ] ; then
+	    mkdir ~/lib/scons
+	fi
+	cd ~/lib/scons
+	fname=scons-3.0.1.tar.gz
+	wget http://prdownloads.sourceforge.net/scons/$fname
+	tar -xzf $fname
+	cd ${fname/\.tar\.gz/}
+	python setup.py install --prefix=$HOME
+    fi
+fi
+if [ -z "$(echo $PATH | grep $HOME/bin)" ] ; then
+    export PATH=$HOME/bin:$PATH
 fi
 
 if [ ! -e ~/lib/mint ] ; then
