@@ -1,5 +1,8 @@
 #!/bin/bash
 
+if [ -z "$(echo $PATH | grep $HOME/bin)" ] ; then
+    export PATH=$HOME/bin:$PATH
+fi
 export QFT_PATH=~/lib/mint/qft
 export MINT2=~/lib/mint/Mint2
 export MINT2=~/lib/mint/Mint2

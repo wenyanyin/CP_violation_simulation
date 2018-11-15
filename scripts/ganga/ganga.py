@@ -4,7 +4,7 @@ from pprint import pformat
 optsdir = os.path.expandvars('$AGAMMAD0TOHHPI0ROOT/options')
 dvdir = os.environ['DAVINCIDEV_PROJECT_ROOT']
 
-def make_job(name, datafile, filesperjob, restrip = True, diracoutput = False) :
+def make_job(name, datafile, filesperjob, restrip = True, diracoutput = False, latesttags = True) :
     settings = datafile.replace('.py', '_settings.py')
     if not os.path.exists(settings) :
         settings = datafile.replace('.py', '_DV.py')
@@ -21,7 +21,9 @@ def make_job(name, datafile, filesperjob, restrip = True, diracoutput = False) :
                     options = [settings,
                                os.path.join(optsdir, 'ntupling/tuples.py')],
                     )
-        
+        if latesttags :
+            opts['options'].append(os.path.join(optsdir, 'data/real/LatestTags.py'))
+
     j = Job(name = name, splitter = SplitByFiles(filesPerJob = filesperjob),
             application = GaudiExec(**opts),
                                     backend = Dirac(),
@@ -59,8 +61,8 @@ DaVinci().EvtMax = 1000
         j.submit()
 
 def make_jobs() :
-    #jmcmagdown = make_job('mc-magdown', '/nfs/lhcb/d2hh01/hhpi0/pipipi0-MagDown-MCFlagged.py', 40, False)
-    #jmcmagup = make_job('mc-magup', '/nfs/lhcb/d2hh01/hhpi0/pipipi0-MagUp-MCFlagged.py', 40, False)
+    #jmcmagdown = make_job('mc-magdown', '/nfs/lhcb/d2hh01/hhpi0/pipipi0-MagDown-MCFlagged.py', 40, False, latesttags = False)
+    #jmcmagup = make_job('mc-magup', '/nfs/lhcb/d2hh01/hhpi0/pipipi0-MagUp-MCFlagged.py', 40, False, latesttags = False)
     
     for fname in glob.glob(os.path.join(optsdir, 'data/real/Reco16*Charm*')) :
         if '_DV' in fname or '_settings' in fname :
