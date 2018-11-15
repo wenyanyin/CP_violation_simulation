@@ -47,7 +47,8 @@ doScan			0
 * Mixing & CPV parameters.
 mass       1864.84
 lifetime   0.4101
-x 	   0.0039
+*x 	   0.0039
+x	   0.1
 y 	   0.0065
 qoverp	   1.
 phi	   0.

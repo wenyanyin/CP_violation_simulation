@@ -54,14 +54,14 @@ using namespace MINT;
 
 complex<double> amp_ratio(const int tag, const double decaytime, const double mass, const double width,
 			  const double deltam, const double deltagamma, const double qoverp, const double phi) {
-      complex<double> coeffprod(1., 0.) ;
-      complex<double> coeffmix(0., 0.) ;
-      // Placeholder so it builds without complaining about unused variables.
-      coeffmix.real(tag * decaytime * mass * width * deltam * deltagamma * qoverp * phi) ;
-      coeffmix.real(0.) ;
-
-      complex<double> ratio(coeffmix/coeffprod) ;
-      return ratio ;
+  complex<double> coeffprod(1 + cos(deltam * decaytime), 0.) ;
+  complex<double> coeffmix(1 - cos(deltam * decaytime), 0.) ;
+  // Placeholder so it builds without complaining about unused variables.
+  coeffmix.imag(tag * decaytime * mass * width * deltam * deltagamma * qoverp * phi) ;
+  coeffmix.imag(0.) ;
+  
+  complex<double> ratio(coeffmix/coeffprod) ;
+  return ratio ;
 }
 
 int ampFit(){
@@ -105,7 +105,7 @@ int ampFit(){
   NamedParameter<double> lifetime("lifetime", 0.4101) ;
   double width = 1./lifetime ;
   NamedParameter<double> x("x", 0.0039) ;
-  double deltam = x * mass / 197.3e-12 * 0.2998 ; // convert MeV to ps^-1.
+  double deltam = x * width ;
   NamedParameter<double> y("y", 0.0065) ;
   double deltagamma = y * width ;
   NamedParameter<double> qoverp("qoverp", 1.) ;
