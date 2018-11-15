@@ -34,6 +34,6 @@ for mag in 'Up', 'Down' :
     datapaths['Data_2016_Mag' + mag + '_lumi'] = {'tree' : 'GetIntegratedLuminosity/LumiTuple',
                                                          'files' : datapaths['Data_2016_Kpipi0_Mag' + mag + '_full']['files']}
     datapaths['Data_2016_Kpipi0_Mag' + mag] = {'tree' : 'DecayTree', 
-                                               'files' : (os.path.join(datadir, 'data/Data_2016_Kpipi0_Mag{0}.root'.format(mag)),)}
+                                               'files' : glob.glob(os.path.join(datadir, 'data', '2016', 'mag' + mag.lower(), '*.root'))}
 
 datalib = DataLibrary(datapaths, variables, varnames = varnames, selection = selection_R)
