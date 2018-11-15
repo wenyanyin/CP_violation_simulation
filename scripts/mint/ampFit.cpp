@@ -47,9 +47,22 @@
 
 
 #include "Mint/Chi2Binning.h"
+#include <memory>
 
 using namespace std;
 using namespace MINT;
+
+complex<double> amp_ratio(const int tag, const double decaytime, const double mass, const double width,
+			  const double deltam, const double deltagamma, const double qoverp, const double phi) {
+      complex<double> coeffprod(1., 0.) ;
+      complex<double> coeffmix(0., 0.) ;
+      // Placeholder so it builds without complaining about unused variables.
+      coeffmix.real(tag * decaytime * mass * width * deltam * deltagamma * qoverp * phi) ;
+      coeffmix.real(0.) ;
+
+      complex<double> ratio(coeffmix/coeffprod) ;
+      return ratio ;
+}
 
 int ampFit(){
   time_t startTime = time(0);
@@ -88,8 +101,41 @@ int ampFit(){
   NamedParameter<int> saveEvents("SaveEvents", 1);
   NamedParameter<int> doFinalStats("DoFinalStats", 1);
   NamedParameter<int> genTimeDependent("genTimeDependent", 0);
-  cout << " got event pattern: " << pat << endl;
+  NamedParameter<double> mass("mass", 1864.84) ;
+  NamedParameter<double> lifetime("lifetime", 0.4101) ;
+  double width = 1./lifetime ;
+  NamedParameter<double> x("x", 0.0039) ;
+  double deltam = x * mass / 197.3e-12 * 0.2998 ; // convert MeV to ps^-1.
+  NamedParameter<double> y("y", 0.0065) ;
+  double deltagamma = y * width ;
+  NamedParameter<double> qoverp("qoverp", 1.) ;
+  NamedParameter<double> phi("phi", 0.) ;
 
+  NamedParameter<double> tmax("tmax", 10.) ;
+  NamedParameter<double> sampleinterval("sampleinterval", 0.1) ;
+
+  typedef pair<double, unique_ptr<SignalGenerator> > GenPair ;
+  typedef list<GenPair> GenList ;
+  typedef map<int, GenList> GenMap ;
+  DalitzEventPattern* patterns[2] = {&cpPat, &pat} ;
+  GenMap generators ;
+  if(genTimeDependent){
+    for(int tag = -1 ; tag <= 1 ; tag += 2) {
+      generators[tag] = GenList() ;
+      DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
+      for(double decaytime = 0. ; decaytime <= tmax ; decaytime += sampleinterval){
+	complex<double> ratio = amp_ratio(tag, decaytime, mass, width, deltam, deltagamma, qoverp, phi) ;
+	double mag = sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) ;
+	double phase = ratio.real() != 0. ? atan(ratio.imag()/ratio.real()) : TMath::Pi()/2. ;
+	cout << "Builder generator with tag " << tag << " at decay time " << decaytime 
+	     << ". Ratio mag.: " << mag << ", phase: " << phase << endl ;
+	SignalGenerator* gen = new SignalGenerator(*evtpat, mag, phase) ;
+	generators[tag].push_back(GenPair(decaytime, gen)) ;
+      }
+    }
+  }
+
+  cout << " got event pattern: " << pat << endl;
 
   DalitzEventList eventList1 ;
 
@@ -99,34 +145,42 @@ int ampFit(){
   int startTimeGen(time(0)) ;
   for(int i = 0 ; i < Nevents ; ++i){
     // Decide if it's a D0 or D0bar that's being generated.
-    DalitzEventPattern* evtpat(&pat) ;
     SignalGenerator* gen(&genD0) ;
     int tag = 1 ;
     if(ranLux.Rndm() > 0.5){
-      evtpat = &cpPat ;
       gen = &genD0bar ;
       tag = -1 ;
     }
     tags.push_back(tag) ;
 
     // Generate the decay time of the candidate.
-    double lifetime = 0.4101 ; // ps
-    double tau = ranLux.Exp(lifetime) ;
-    taus.push_back(tau) ;
+    double decaytime = tmax + 1. ;
+    while(decaytime > tmax)
+      decaytime = ranLux.Exp(lifetime) ;
+    taus.push_back(decaytime) ;
 
     cout << "Generating candidate " << i << " (" << (time(0)-startTimeGen)/float(i) << " s per candidate)" << endl ;
     if(genTimeDependent){
-      // Make the amplitude model a combination of D0 and D0bar as a function of
-      // the generated decay time.
-      complex<double> coeffprod(1., 0.) ;
-      complex<double> coeffmix(0., 0.) ;
-      
-      complex<double> ratio(coeffmix/coeffprod) ;
-      SignalGenerator gentimedep(*evtpat,
-				 sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()), // magnitude.
-				 ratio.real() != 0. ? atan(ratio.imag()/ratio.real()) : TMath::Pi()/2. // phase.
-				 ) ;
-      gentimedep.FillEventList(eventList1, 1);
+      // Find the generators either side of the generated decay time.
+      GenList& genlist = generators[tag] ;
+      GenList::iterator igen = genlist.begin() ;
+      while(igen->first < decaytime && igen != genlist.end())
+	++igen ;
+      SignalGenerator* generator(0) ;
+      // Unlikely, but best check (in case we're right at 0 or tmax)
+      if(igen->first == decaytime)
+	generator = igen->second.get() ;
+      // Pick between the generators either side of the decay time according to how close they are to it.
+      else{
+	GenList::iterator igenprev(igen) ;
+	--igenprev ;
+	double gensel = ranLux.Rndm() ;
+	if(gensel < 1. - (decaytime - igenprev->first)/sampleinterval)
+	  generator = igenprev->second.get() ;
+	else 
+	  generator = igen->second.get() ;
+      }
+      generator->FillEventList(eventList1, 1);
     }
     else {
       gen->FillEventList(eventList1, 1);
@@ -160,6 +214,7 @@ int ampFit(){
 
   cout << " ampFit done. Took " << (time(0) - startTime)/60. 
        << " min. Returning 0." << endl;
+
   return 0;
 }
 
