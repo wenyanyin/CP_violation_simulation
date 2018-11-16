@@ -48,21 +48,275 @@
 
 #include "Mint/Chi2Binning.h"
 #include <memory>
+#include <TSpline.h>
 
 using namespace std;
 using namespace MINT;
 
-complex<double> amp_ratio(const int tag, const double decaytime, const double mass, const double width,
-			  const double deltam, const double deltagamma, const double qoverp, const double phi) {
-  complex<double> coeffprod(1 + cos(deltam * decaytime), 0.) ;
-  complex<double> coeffmix(1 - cos(deltam * decaytime), 0.) ;
-  // Placeholder so it builds without complaining about unused variables.
-  coeffmix.imag(tag * decaytime * mass * width * deltam * deltagamma * qoverp * phi) ;
-  coeffmix.imag(0.) ;
+class SplineGenerator {
+private :
+  struct BinInfo {
+    double xmin ;
+    double xmax ;
+    double integral ;
+    double ymin ;
+    double ymax ;
+    double boxintegral ;
+  } ;
   
-  complex<double> ratio(coeffmix/coeffprod) ;
-  return ratio ;
-}
+  TRandom3* m_rndm ;
+  mutable TSpline3 m_spline ; // Cause ROOT is crap at const correctness.
+  double m_integral ;
+  double m_boxintegral ;
+  vector<BinInfo> m_bins ;
+  
+public :
+  SplineGenerator(TRandom3* rndm, const TSpline3& spline) :
+    m_rndm(rndm),
+    m_spline(spline),
+    m_integral(0.),
+    m_boxintegral(0.),
+    m_bins(spline.GetNp())
+  {
+    BinInfo ibin ;
+    double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
+    int i = m_spline.GetNp() - 1 ;
+    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+    ibin.xmin = xmin ;
+    ibin.xmax = 1e30 ;
+    ibin.integral = 0. ;
+    ibin.ymin = 0. ;
+    ibin.ymax = 1e30 ;
+    m_bins[i] = ibin ;
+    --i ;
+    for( ; i >= 0 ; --i){
+      m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+      ibin.xmin = xmin ;
+      ibin.xmax = m_bins[i+1].xmin ;
+      ibin.integral = integral(i, ibin.xmin, ibin.xmax) ;
+      m_integral += ibin.integral ;
+      pair<double, double> tps = turning_points(i) ;
+      tps.first = max(min(tps.first, ibin.xmax), ibin.xmin) ;
+      tps.second = max(min(tps.second, ibin.xmax), ibin.xmin) ;
+      ibin.ymax = max(
+		      max(
+			  max(m_spline.Eval(ibin.xmin),
+			      m_spline.Eval(ibin.xmax)),
+			  m_spline.Eval(tps.first)),
+		      m_spline.Eval(tps.second)) ;
+      ibin.ymin = min(
+		      min(
+			  min(m_spline.Eval(ibin.xmin),
+			      m_spline.Eval(ibin.xmax)),
+			  m_spline.Eval(tps.first)),
+		      m_spline.Eval(tps.second)) ;
+      if(ibin.ymin < 0.){
+	cerr << "SplineGenerator ERROR: ymin < 0. (" << ibin.ymin << ") for bin " << i << endl ;
+      }
+      ibin.boxintegral = ibin.ymax * (ibin.xmax - ibin.xmin) ;
+      m_boxintegral += ibin.boxintegral ;
+      m_bins[i] = ibin ;
+    }
+  }
+
+  double integral() const {
+    return m_integral ;
+  }
+  
+  double gen_random() const {
+    while(true){
+      double boxsel = m_rndm->Rndm() * m_boxintegral ;
+      double boxsum(0.) ;
+      vector<BinInfo>::const_iterator ibin = m_bins.begin() ;
+      for(; ibin != m_bins.end() ; ++ibin){
+	boxsum += ibin->boxintegral ;
+	if(boxsum >= boxsel)
+	  break ;
+      }
+      double x = m_rndm->Rndm() * (ibin->xmax - ibin->xmin) + ibin->xmin ;
+      if(m_rndm->Rndm() * ibin->ymax < m_spline.Eval(x))
+	return x ;
+    }
+  }
+
+  double partial_integral(int i, double x) {
+    double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
+    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+    return a * x + b * x * x / 2. + c * x * x * x / 3. + d * x * x * x * x / 4. ;
+  }
+
+  double integral(int i, double xmin, double xmax) {
+    return partial_integral(i, xmax) - partial_integral(i, xmin) ;
+  }
+  
+  double integral(double xmin, double xmax) {
+    int istart = m_spline.FindX(xmin) ;
+    int iend = m_spline.FindX(xmax) ;
+    double _integral = integral(istart, xmin, m_bins[istart].xmax)
+      + integral(iend, m_bins[iend].xmin, xmax) ;
+    for(int ibin = istart + 1 ; ibin != iend ; ++ibin)
+      _integral += m_bins[ibin].integral ;
+    return _integral ;
+  }
+
+  pair<double, double> turning_points(int i) const {
+    double xmin(0.), d(0.), c(0.), b(0.), a(0.) ;
+    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+    b *= 2. ;
+    a *= 3. ;
+    double arg = b*b - 4. * a * c ;
+    if(arg < 0.)
+      return pair<double, double>(-1e30, -1e30) ;
+    return pair<double, double>((-b - sqrt(arg))/2./a, (-b + sqrt(arg))/2./a) ;
+  }
+} ;
+
+class TimeDependentGenerator {
+
+public :
+  class GenTimePoint {
+  public :
+    GenTimePoint(const double _decaytime, FitAmpSum* _model,
+		 const double _integral, SignalGenerator* _generator) :
+      decaytime(_decaytime),
+      integral(_integral),
+      model(_model),
+      generator(_generator)
+    {}
+    
+    const double decaytime ;
+    const double integral ;
+    unique_ptr<FitAmpSum> model ;
+    unique_ptr<SignalGenerator> generator ;
+  } ;
+
+  typedef list<GenTimePoint> GenList ;
+  typedef map<int, GenList> GenMap ;
+  typedef pair<complex<double>, complex<double> > AmpPair ;
+  
+  struct GenTimeEvent {
+    int tag ;
+    double decaytime ;
+    MINT::counted_ptr<IDalitzEvent> evt ;
+  } ;
+
+  TimeDependentGenerator(TRandom3* rndm,
+			 const DalitzEventPattern& pattern, double mass, double width, double deltam, double deltagamma,
+			 double qoverp, double phi, double tmax, double sampleinterval) :
+    m_rndm(rndm),
+    m_pattern(pattern),
+    m_cppattern(pattern.makeCPConjugate()),
+    m_mass(mass),
+    m_width(width),
+    m_deltam(deltam),
+    m_deltagamma(deltagamma),
+    m_qoverp(qoverp),
+    m_phi(phi),
+    m_tmax(tmax),
+    m_sampleinterval(sampleinterval),
+    m_genmap(),
+    m_timegenerators(),
+    m_tagintegralfrac(0.)
+  {
+    const DalitzEventPattern* patterns[] = {&m_pattern, &m_cppattern} ;
+    for(int tag = -1 ; tag <= 1 ; tag += 2) {
+      m_genmap[tag] = GenList() ;
+      const DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
+      const DalitzEventPattern* antipat = patterns[((tag+1)/2 + 1) % 2] ;
+      vector<double> times ;
+      vector<double> integrals ;
+      for(double decaytime = 0. ; decaytime <= m_tmax ; decaytime += m_sampleinterval){
+	AmpPair amps = amplitudes(tag, decaytime) ;
+	FitAmpSum* model(new FitAmpSum(*evtpat)) ;
+	*model *= amps.first ;
+	FitAmpSum antimodel(*antipat) ;
+	antimodel *= amps.second ;
+	model->add(antimodel) ;
+	const double integral = model->makeIntegrationCalculator()->integral() ;
+	SignalGenerator* generator = new SignalGenerator(*evtpat, model) ;
+	m_genmap[tag].push_back(GenTimePoint(decaytime, model, integral, generator)) ;
+	times.push_back(decaytime) ;
+	integrals.push_back(integral) ;
+      }
+      TSpline3 timespline("timespline", &times[0], &integrals[0], times.size()) ;
+      m_timegenerators.insert(make_pair(tag, SplineGenerator(rndm, timespline))) ;
+    }
+    m_tagintegralfrac = m_timegenerators.find(-1)->second.integral()
+      /(m_timegenerators.find(-1)->second.integral() + m_timegenerators.find(1)->second.integral()) ;
+  }
+
+  AmpPair amplitudes(const int tag, const double decaytime) {
+    double coeff(exp(-decaytime * m_width) * abs(tag)) ;
+    complex<double> coeffprod(coeff, 0.) ;
+    complex<double> coeffmix(0., 0.) ;
+    return AmpPair(coeffprod, coeffmix) ;
+  }
+
+  int generate_tag() const {
+    double rndm = m_rndm->Rndm() ;
+    if(rndm < m_tagintegralfrac)
+      return -1 ;
+    return 1 ;
+  }
+
+  double generate_decay_time(const int tag) const {
+    double decaytime = m_tmax + 1. ;
+    while(decaytime > m_tmax)
+      decaytime = m_timegenerators.find(tag)->second.gen_random() ;
+    return decaytime ;
+  }
+
+  MINT::counted_ptr<IDalitzEvent> generate_dalitz_event(const int tag, const double decaytime) const {
+    const GenList& genlist = m_genmap.find(tag)->second ;
+    GenList::const_iterator igen = genlist.begin() ;
+    while(igen->decaytime < decaytime && igen != genlist.end())
+      ++igen ;
+    if(igen == genlist.end()){
+      cerr << "TimeDependentGenerator::generate_dalitz_event: ERROR: Got impossible decay time: "
+	   << decaytime << " (tmax = " << m_tmax << ")" << endl ;
+      return MINT::counted_ptr<IDalitzEvent>(0) ;
+    }
+    // Unlikely, but best to check.
+    if(decaytime == igen->decaytime)
+      return igen->generator->newEvent() ;
+    GenList::const_iterator igenprev(igen) ;
+    --igen ;
+    // Pick between the generators either side of the decay time according to how close they are to it.
+    double gensel = m_rndm->Rndm() ;
+    if(gensel < 1. - (decaytime - igenprev->decaytime)/m_sampleinterval)
+      return igenprev->generator->newEvent() ;
+    return igen->generator->newEvent() ;
+  }
+
+  GenTimeEvent generate_event() const {
+    GenTimeEvent evt ;
+    evt.tag = generate_tag() ;
+    evt.decaytime = generate_decay_time(evt.tag) ;
+    evt.evt = generate_dalitz_event(evt.tag, evt.decaytime) ;
+    return evt ;
+  }
+
+private :
+  TRandom3* m_rndm ;
+  const DalitzEventPattern m_pattern ;
+  const DalitzEventPattern m_cppattern ;
+  
+  const double m_mass ;
+  const double m_width ;
+  const double m_deltam ;
+  const double m_deltagamma ;
+  const double m_qoverp ;
+  const double m_phi ;
+
+  const double m_tmax ;
+  const double m_sampleinterval ;
+
+  GenMap m_genmap ;
+
+  map<int, SplineGenerator> m_timegenerators ;
+
+  double m_tagintegralfrac ;
+} ;
 
 int ampFit(){
   time_t startTime = time(0);
@@ -114,25 +368,9 @@ int ampFit(){
   NamedParameter<double> tmax("tmax", 10.) ;
   NamedParameter<double> sampleinterval("sampleinterval", 0.1) ;
 
-  typedef pair<double, unique_ptr<SignalGenerator> > GenPair ;
-  typedef list<GenPair> GenList ;
-  typedef map<int, GenList> GenMap ;
-  DalitzEventPattern* patterns[2] = {&cpPat, &pat} ;
-  GenMap generators ;
+  unique_ptr<TimeDependentGenerator> timedepgen ;
   if(genTimeDependent){
-    for(int tag = -1 ; tag <= 1 ; tag += 2) {
-      generators[tag] = GenList() ;
-      DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
-      for(double decaytime = 0. ; decaytime <= tmax ; decaytime += sampleinterval){
-	complex<double> ratio = amp_ratio(tag, decaytime, mass, width, deltam, deltagamma, qoverp, phi) ;
-	double mag = sqrt(ratio.real()*ratio.real() + ratio.imag()*ratio.imag()) ;
-	double phase = ratio.real() != 0. ? atan(ratio.imag()/ratio.real()) : TMath::Pi()/2. ;
-	cout << "Builder generator with tag " << tag << " at decay time " << decaytime 
-	     << ". Ratio mag.: " << mag << ", phase: " << phase << endl ;
-	SignalGenerator* gen = new SignalGenerator(*evtpat, mag, phase) ;
-	generators[tag].push_back(GenPair(decaytime, gen)) ;
-      }
-    }
+    timedepgen.reset(new TimeDependentGenerator(&ranLux, pat, mass, width, deltam, deltagamma, qoverp, phi, tmax, sampleinterval)) ;
   }
 
   cout << " got event pattern: " << pat << endl;
@@ -161,26 +399,10 @@ int ampFit(){
 
     cout << "Generating candidate " << i << " (" << (time(0)-startTimeGen)/float(i) << " s per candidate)" << endl ;
     if(genTimeDependent){
-      // Find the generators either side of the generated decay time.
-      GenList& genlist = generators[tag] ;
-      GenList::iterator igen = genlist.begin() ;
-      while(igen->first < decaytime && igen != genlist.end())
-	++igen ;
-      SignalGenerator* generator(0) ;
-      // Unlikely, but best check (in case we're right at 0 or tmax)
-      if(igen->first == decaytime)
-	generator = igen->second.get() ;
-      // Pick between the generators either side of the decay time according to how close they are to it.
-      else{
-	GenList::iterator igenprev(igen) ;
-	--igenprev ;
-	double gensel = ranLux.Rndm() ;
-	if(gensel < 1. - (decaytime - igenprev->first)/sampleinterval)
-	  generator = igenprev->second.get() ;
-	else 
-	  generator = igen->second.get() ;
-      }
-      generator->FillEventList(eventList1, 1);
+      TimeDependentGenerator::GenTimeEvent evt = timedepgen->generate_event() ;
+      tags.back() = evt.tag ;
+      taus.back() = evt.decaytime ;
+      eventList1.Add(evt.evt.get()) ;
     }
     else {
       gen->FillEventList(eventList1, 1);

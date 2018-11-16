@@ -18,8 +18,12 @@ for tag in '-1', '+1' :
                        'mzero' : m0}.items() :
         tree.Draw(form, 'tag == ' + tag, 'colz')
         canv.SaveAs(name + '_tag_' + tag + '.pdf')
-        for i in xrange(100) :
-            time = i*0.1
-            tree.Draw(form, 'tag == ' + tag + ' && {0} < decaytime && decaytime <= {1}'.format(time, time+0.1), 'colz')
+        nbins = 100
+        binwidth = 0.1
+        #nbins = 2
+        #binwidth = 5.
+        for i in xrange(nbins) :
+            time = i*binwidth
+            tree.Draw(form, 'tag == ' + tag + ' && {0} < decaytime && decaytime <= {1}'.format(time, time+binwidth), 'colz')
             canv.SaveAs('timebins/' + name + '_tag_' + tag + '_timebin_' + str(i).zfill(2) + '.pdf')
             
