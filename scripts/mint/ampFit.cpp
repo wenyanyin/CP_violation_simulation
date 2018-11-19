@@ -237,7 +237,7 @@ public :
 	SignalGenerator* generator = new SignalGenerator(*evtpat, model) ;
 	ostringstream fname ;
 	fname << "integrators/tag_" << tag << "_decaytime_" << decaytime ;
-	DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision) ;
+	DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision, fname.str(), fname.str() + "_events.root", "topUp", fname.str()) ;
 	dalitz.saveIntegrator(fname.str()) ;
 	double integral = dalitz.getIntegralValue() ;
 	cout << "Make generator with tag " << tag << ", coeffprod " << amps.first.real() << " + " << amps.first.imag() << " j, "
