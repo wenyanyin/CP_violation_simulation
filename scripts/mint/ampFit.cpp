@@ -49,6 +49,7 @@
 #include "Mint/Chi2Binning.h"
 #include <memory>
 #include <TSpline.h>
+#include <Mint/DalitzPdfSaveInteg.h>
 
 using namespace std;
 using namespace MINT;
@@ -200,7 +201,7 @@ public :
     MINT::counted_ptr<IDalitzEvent> evt ;
   } ;
 
-  TimeDependentGenerator(TRandom3* rndm,
+  TimeDependentGenerator(TRandom3* rndm, double precision,
 			 const DalitzEventPattern& pattern, double mass, double width, double deltam, double deltagamma,
 			 double qoverp, double phi, double tmax, double sampleinterval) :
     m_rndm(rndm),
@@ -216,7 +217,8 @@ public :
     m_sampleinterval(sampleinterval),
     m_genmap(),
     m_timegenerators(),
-    m_tagintegralfrac(0.)
+    m_tagintegralfrac(0.),
+    m_precision(precision)
   {
     const DalitzEventPattern* patterns[] = {&m_pattern, &m_cppattern} ;
     for(int tag = -1 ; tag <= 1 ; tag += 2) {
@@ -232,8 +234,18 @@ public :
 	FitAmpSum antimodel(*antipat) ;
 	antimodel *= amps.second ;
 	model->add(antimodel) ;
-	const double integral = model->makeIntegrationCalculator()->integral() ;
 	SignalGenerator* generator = new SignalGenerator(*evtpat, model) ;
+	ostringstream fname ;
+	fname << "integrators/tag_" << tag << "_decaytime_" << decaytime ;
+	DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision) ;
+	dalitz.saveIntegrator(fname.str()) ;
+	double integral = dalitz.getIntegralValue() ;
+	cout << "Make generator with tag " << tag << ", coeffprod " << amps.first.real() << " + " << amps.first.imag() << " j, "
+	     << " coeffmix " << amps.second.real() << " + " << amps.second.imag() << " j, integral " << integral << endl ;
+	if(integral == 0.){
+	  complex<double> coeff = amps.first + amps.second ;
+	  integral = sqrt(coeff.real() * coeff.real() + coeff.imag() * coeff.imag()) ;
+	}
 	m_genmap[tag].push_back(GenTimePoint(decaytime, model, integral, generator)) ;
 	times.push_back(decaytime) ;
 	integrals.push_back(integral) ;
@@ -316,6 +328,7 @@ private :
   map<int, SplineGenerator> m_timegenerators ;
 
   double m_tagintegralfrac ;
+  double m_precision ;
 } ;
 
 int ampFit(){
@@ -370,7 +383,8 @@ int ampFit(){
 
   unique_ptr<TimeDependentGenerator> timedepgen ;
   if(genTimeDependent){
-    timedepgen.reset(new TimeDependentGenerator(&ranLux, pat, mass, width, deltam, deltagamma, qoverp, phi, tmax, sampleinterval)) ;
+    timedepgen.reset(new TimeDependentGenerator(&ranLux, integPrecision, pat,
+						mass, width, deltam, deltagamma, qoverp, phi, tmax, sampleinterval)) ;
   }
 
   cout << " got event pattern: " << pat << endl;
