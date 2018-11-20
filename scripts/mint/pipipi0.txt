@@ -37,7 +37,7 @@ useAnalyticGradient 1
 genTimeDependent	1
 "Nevents"               100000
 
-"IntegPrecision"        1.0e-1
+"IntegPrecision"        1.0e-2
 "IntegMethod"           "efficient"
 IntegratorSource        "file"
 
@@ -53,8 +53,11 @@ y 	   0.0065
 qoverp	   1.
 phi	   0.
 
-tmax	   10.
-sampleinterval 0.1
+tmax		4.1
+nTimePoints 	41
+* Whether to recalculate the integrals or not.
+overwriteIntegrators      0
+integratorsDirectory       integrators
 
 ** name									Fix?	init	step	min	max
 *
@@ -69,8 +72,8 @@ SignalFraction								2      0.75    0.05      0        1
 
 "Dbar0->rho(770)-(->pi-,pi0),pi+_Re"					1	1	0.1
 "Dbar0->rho(770)-(->pi-,pi0),pi+_Im"					1	0	0.1
-"Dbar0->rho(770)0(->pi+,pi-),pi0_Re"					0	0.529   0.05
-"Dbar0->rho(770)0(->pi+,pi-),pi0_Im"					0	0.152	0.05
+"Dbar0->rho(770)0(->pi-,pi+),pi0_Re"					0	0.529   0.05
+"Dbar0->rho(770)0(->pi-,pi+),pi0_Im"					0	0.152	0.05
 "Dbar0->rho(770)+(->pi+,pi0),pi-_Re"					0 	0.730	0.05
 "Dbar0->rho(770)+(->pi+,pi0),pi-_Im"					0	-0.02	0.05
 

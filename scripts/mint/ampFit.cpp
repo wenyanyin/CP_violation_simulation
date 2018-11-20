@@ -50,9 +50,16 @@
 #include <memory>
 #include <TSpline.h>
 #include <Mint/DalitzPdfSaveInteg.h>
+#include <sys/stat.h>
+#include <cstdlib>
 
 using namespace std;
 using namespace MINT;
+
+bool exists(const string& fname) {
+  struct stat statinfo ;
+  return stat(fname.c_str(), &statinfo) == 0 ;
+}
 
 class SplineGenerator {
 private :
@@ -170,6 +177,10 @@ public :
       return pair<double, double>(-1e30, -1e30) ;
     return pair<double, double>((-b - sqrt(arg))/2./a, (-b + sqrt(arg))/2./a) ;
   }
+
+  const TSpline3& spline() const {
+    return m_spline ;
+  }
 } ;
 
 class TimeDependentGenerator {
@@ -201,9 +212,11 @@ public :
     MINT::counted_ptr<IDalitzEvent> evt ;
   } ;
 
-  TimeDependentGenerator(TRandom3* rndm, double precision,
-			 const DalitzEventPattern& pattern, double mass, double width, double deltam, double deltagamma,
-			 double qoverp, double phi, double tmax, double sampleinterval) :
+  TimeDependentGenerator(const string& name, const bool overwrite, TRandom3* rndm, double precision,
+			 const DalitzEventPattern& pattern, double mass, double width, double deltam,
+			 double deltagamma,
+			 double qoverp, double phi, double tmax, int ntimepoints) :
+    m_name(name),
     m_rndm(rndm),
     m_pattern(pattern),
     m_cppattern(pattern.makeCPConjugate()),
@@ -214,20 +227,34 @@ public :
     m_qoverp(qoverp),
     m_phi(phi),
     m_tmax(tmax),
-    m_sampleinterval(sampleinterval),
+    m_ntimepoints(ntimepoints),
     m_genmap(),
     m_timegenerators(),
     m_tagintegralfrac(0.),
     m_precision(precision)
   {
+    // If overwrite is true and the integrators directory exists, delete it.
+    if(overwrite && exists(name)){
+      cout << "Deleting previous integrators in directory " << name << endl ;
+      string cmd("rm -rf " + name) ;
+      system(cmd.c_str()) ;
+    }
+
+    if(!exists(name)){
+      string cmd("mkdir -p " + name) ;
+      system(cmd.c_str()) ;
+    }
+    
     const DalitzEventPattern* patterns[] = {&m_pattern, &m_cppattern} ;
+    double sampleinterval = m_tmax/m_ntimepoints ;
     for(int tag = -1 ; tag <= 1 ; tag += 2) {
       m_genmap[tag] = GenList() ;
       const DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
       const DalitzEventPattern* antipat = patterns[((tag+1)/2 + 1) % 2] ;
       vector<double> times ;
       vector<double> integrals ;
-      for(double decaytime = 0. ; decaytime <= m_tmax ; decaytime += m_sampleinterval){
+      for(int i = 0 ; i <= m_ntimepoints ; ++i){
+	double decaytime = i * sampleinterval ;
 	AmpPair amps = amplitudes(tag, decaytime) ;
 	FitAmpSum* model(new FitAmpSum(*evtpat)) ;
 	*model *= amps.first ;
@@ -236,12 +263,24 @@ public :
 	model->add(antimodel) ;
 	SignalGenerator* generator = new SignalGenerator(*evtpat, model) ;
 	ostringstream fname ;
-	fname << "integrators/tag_" << tag << "_decaytime_" << decaytime ;
-	DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision, fname.str(), fname.str() + "_events.root", "topUp", fname.str()) ;
-	dalitz.saveIntegrator(fname.str()) ;
-	double integral = dalitz.getIntegralValue() ;
-	cout << "Make generator with tag " << tag << ", coeffprod " << amps.first.real() << " + " << amps.first.imag() << " j, "
-	     << " coeffmix " << amps.second.real() << " + " << amps.second.imag() << " j, integral " << integral << endl ;
+	fname << m_name << "/tag_" << tag << "_decaytime_" << decaytime ;
+	double integral(0.) ;
+	if(!exists(fname.str())){
+	  DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision, fname.str(),
+				    fname.str() + "_events.root", "topUp", fname.str()) ;
+	  integral = dalitz.getIntegralValue() ;
+	  dalitz.saveIntegrator(fname.str()) ;
+	}
+	else {
+	  auto intcalc = model->makeIntegrationCalculator() ;
+	  intcalc->retrieve(fname.str()) ;
+	  integral = intcalc->integral() ;
+	}
+	cout << "Make generator with tag " << tag << ", decay time " << decaytime
+	     << ", coeffprod " << amps.first.real()
+	     << " + " << amps.first.imag() << " j, "
+	     << " coeffmix " << amps.second.real() << " + " << amps.second.imag()
+	     << " j, integral " << integral << endl ;
 	if(integral == 0.){
 	  complex<double> coeff = amps.first + amps.second ;
 	  integral = sqrt(coeff.real() * coeff.real() + coeff.imag() * coeff.imag()) ;
@@ -250,15 +289,21 @@ public :
 	times.push_back(decaytime) ;
 	integrals.push_back(integral) ;
       }
-      TSpline3 timespline("timespline", &times[0], &integrals[0], times.size()) ;
+      ostringstream splinename ;
+      splinename << "timespline_tag_" << tag ;
+      string splinenamestr = splinename.str() ;
+      TSpline3 timespline(splinenamestr.c_str(), &times[0], &integrals[0], times.size()) ;
+      timespline.SetName(splinenamestr.c_str()) ;
       m_timegenerators.insert(make_pair(tag, SplineGenerator(rndm, timespline))) ;
     }
-    m_tagintegralfrac = m_timegenerators.find(-1)->second.integral()
-      /(m_timegenerators.find(-1)->second.integral() + m_timegenerators.find(1)->second.integral()) ;
+    double integminus = m_timegenerators.find(-1)->second.integral() ;
+    double integplus = m_timegenerators.find(1)->second.integral() ;
+    cout << "Integrated CP asymmetry is " << (integplus - integminus)/(integplus + integminus) << endl ;
+    m_tagintegralfrac = integminus/(integminus + integplus) ;
   }
 
   AmpPair amplitudes(const int tag, const double decaytime) {
-    double coeff(exp(-decaytime * m_width) * abs(tag)) ;
+    double coeff(exp(-decaytime * m_width)) ;
     complex<double> coeffprod(coeff, 0.) ;
     complex<double> coeffmix(0., 0.) ;
     return AmpPair(coeffprod, coeffmix) ;
@@ -295,7 +340,7 @@ public :
     --igen ;
     // Pick between the generators either side of the decay time according to how close they are to it.
     double gensel = m_rndm->Rndm() ;
-    if(gensel < 1. - (decaytime - igenprev->decaytime)/m_sampleinterval)
+    if(gensel < 1. - (decaytime - igenprev->decaytime)/(igen->decaytime - igenprev->decaytime))
       return igenprev->generator->newEvent() ;
     return igen->generator->newEvent() ;
   }
@@ -308,7 +353,12 @@ public :
     return evt ;
   }
 
+  const map<int, SplineGenerator> time_generators() const {
+    return m_timegenerators;
+  }
+  
 private :
+  const string m_name ;
   TRandom3* m_rndm ;
   const DalitzEventPattern m_pattern ;
   const DalitzEventPattern m_cppattern ;
@@ -321,7 +371,7 @@ private :
   const double m_phi ;
 
   const double m_tmax ;
-  const double m_sampleinterval ;
+  const int m_ntimepoints ;
 
   GenMap m_genmap ;
 
@@ -379,12 +429,16 @@ int ampFit(){
   NamedParameter<double> phi("phi", 0.) ;
 
   NamedParameter<double> tmax("tmax", 10.) ;
-  NamedParameter<double> sampleinterval("sampleinterval", 0.1) ;
-
+  NamedParameter<double> ntimepoints("nTimePoints", 0.1) ;
+  NamedParameter<int> overwrite("overwriteIntegrators", 1) ;
+  NamedParameter<string> name("integratorsDirectory", string("integrators"), (char*)0) ;
+  
   unique_ptr<TimeDependentGenerator> timedepgen ;
   if(genTimeDependent){
-    timedepgen.reset(new TimeDependentGenerator(&ranLux, integPrecision, pat,
-						mass, width, deltam, deltagamma, qoverp, phi, tmax, sampleinterval)) ;
+    int startinit(time(0)) ;
+    timedepgen.reset(new TimeDependentGenerator(name, overwrite, &ranLux, integPrecision, pat,
+						mass, width, deltam, deltagamma, qoverp, phi, tmax, ntimepoints)) ;
+    cout << "Initialise TimeDependentGenerator took " << time(0) - startinit << " s" << endl ;
   }
 
   cout << " got event pattern: " << pat << endl;
@@ -442,6 +496,10 @@ int ampFit(){
       ++itau ;
     }
     ntuple->Write(ntuple->GetName(), TObject::kWriteDelete) ;
+    if(genTimeDependent){
+      timedepgen->time_generators().find(-1)->second.spline().Write() ;
+      timedepgen->time_generators().find(1)->second.spline().Write() ;
+    }
     tuplefile.Close() ;
   }
   
