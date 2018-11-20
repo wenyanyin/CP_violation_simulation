@@ -7,3 +7,5 @@ AllKnownDecayTrees.txt
 protoFitAmplitudeFile.txt
 .sconsign.dblite
 stdout
+.scons_openmp
+integrators*
