@@ -213,14 +213,13 @@ public :
   } ;
 
   TimeDependentGenerator(const string& name, const bool overwrite, TRandom3* rndm, double precision,
-			 const DalitzEventPattern& pattern, double mass, double width, double deltam,
+			 const DalitzEventPattern& pattern, double width, double deltam,
 			 double deltagamma,
 			 double qoverp, double phi, double tmax, int ntimepoints) :
     m_name(name),
     m_rndm(rndm),
     m_pattern(pattern),
     m_cppattern(pattern.makeCPConjugate()),
-    m_mass(mass),
     m_width(width),
     m_deltam(deltam),
     m_deltagamma(deltagamma),
@@ -255,7 +254,7 @@ public :
       vector<double> integrals ;
       for(int i = 0 ; i <= m_ntimepoints ; ++i){
 	double decaytime = i * sampleinterval ;
-	AmpPair amps = amplitudes(tag, decaytime) ;
+	AmpPair amps = amplitude_coefficients(tag, decaytime) ;
 	FitAmpSum* model(new FitAmpSum(*evtpat)) ;
 	*model *= amps.first ;
 	FitAmpSum antimodel(*antipat) ;
@@ -302,10 +301,13 @@ public :
     m_tagintegralfrac = integminus/(integminus + integplus) ;
   }
 
-  AmpPair amplitudes(const int tag, const double decaytime) {
-    double coeff(exp(-decaytime * m_width)) ;
-    complex<double> coeffprod(coeff, 0.) ;
-    complex<double> coeffmix(0., 0.) ;
+  AmpPair amplitude_coefficients(const int tag, const double decaytime) {
+    double coeff = exp(-decaytime * 0.5 * (m_width - m_deltagamma)) ;
+    complex<double> expterm = exp(complex<double>(m_deltagamma * decaytime/2., -m_deltam * decaytime)) ;
+    complex<double> plusterm = 1. + expterm ;
+    complex<double> minusterm = 1. - expterm ;
+    complex<double> coeffprod = coeff * plusterm ;
+    complex<double> coeffmix = polar(m_qoverp, tag * m_phi) * coeff * minusterm ;
     return AmpPair(coeffprod, coeffmix) ;
   }
 
@@ -363,7 +365,6 @@ private :
   const DalitzEventPattern m_pattern ;
   const DalitzEventPattern m_cppattern ;
   
-  const double m_mass ;
   const double m_width ;
   const double m_deltam ;
   const double m_deltagamma ;
@@ -418,7 +419,6 @@ int ampFit(){
   NamedParameter<int> saveEvents("SaveEvents", 1);
   NamedParameter<int> doFinalStats("DoFinalStats", 1);
   NamedParameter<int> genTimeDependent("genTimeDependent", 0);
-  NamedParameter<double> mass("mass", 1864.84) ;
   NamedParameter<double> lifetime("lifetime", 0.4101) ;
   double width = 1./lifetime ;
   NamedParameter<double> x("x", 0.0039) ;
@@ -437,7 +437,7 @@ int ampFit(){
   if(genTimeDependent){
     int startinit(time(0)) ;
     timedepgen.reset(new TimeDependentGenerator(name, overwrite, &ranLux, integPrecision, pat,
-						mass, width, deltam, deltagamma, qoverp, phi, tmax, ntimepoints)) ;
+						width, deltam, deltagamma, qoverp, phi, tmax, ntimepoints)) ;
     cout << "Initialise TimeDependentGenerator took " << time(0) - startinit << " s" << endl ;
   }
 

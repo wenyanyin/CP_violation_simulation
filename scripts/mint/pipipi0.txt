@@ -45,7 +45,6 @@ IntegratorSource        "file"
 doScan			0
 
 * Mixing & CPV parameters.
-mass       1864.84
 lifetime   0.4101
 *x 	   0.0039
 x	   2.5
