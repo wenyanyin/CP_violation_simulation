@@ -32,14 +32,14 @@ for name, form in {'dalitz' : '{0} : {1} >> h(100, {2}, {3}, 100, {2}, {3})'.for
         h.SetName(name + '_tag_' + str(tag))
         plots[name][tag] = h
         canv.SaveAs(name + '_tag_' + tag + '.pdf')
-        nbins = 100
+        nbins = 41
         binwidth = 0.1
         #nbins = 2
         #binwidth = 5.
-        # for i in xrange(nbins) :
-        #     time = i*binwidth
-        #     tree.Draw(form, 'tag == ' + tag + ' && {0} < decaytime && decaytime <= {1}'.format(time, time+binwidth), 'colz')
-        #     canv.SaveAs('timebins/' + name + '_tag_' + tag + '_timebin_' + str(i).zfill(2) + '.pdf')
+        for i in xrange(nbins) :
+            time = i*binwidth
+            tree.Draw(form, 'tag == ' + tag + ' && {0} < decaytime && decaytime <= {1}'.format(time, time+binwidth), 'colz')
+            canv.SaveAs('timebins/' + name + '_tag_' + tag + '_timebin_' + str(i).zfill(2) + '.pdf')
 
 for name, hp, hm in (('mplus', plots['mplus']['+1'], plots['mminus']['-1']),
                      ('mminus', plots['mminus']['+1'], plots['mplus']['-1']),

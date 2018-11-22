@@ -89,6 +89,7 @@ public :
     BinInfo ibin ;
     double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
     int i = m_spline.GetNp() - 1 ;
+    // Get info on the highest knot in the spline.
     m_spline.GetCoeff(i, xmin, a, b, c, d) ;
     ibin.xmin = xmin ;
     ibin.xmax = 1e30 ;
@@ -97,15 +98,22 @@ public :
     ibin.ymax = 1e30 ;
     m_bins[i] = ibin ;
     --i ;
+    // Loop backwards over knots, so we can use the x value of the knot above
+    // to set the range.
     for( ; i >= 0 ; --i){
       m_spline.GetCoeff(i, xmin, a, b, c, d) ;
       ibin.xmin = xmin ;
       ibin.xmax = m_bins[i+1].xmin ;
+      // cout << "ibin " << i << " xmin " << ibin.xmin << " xmax " << ibin.xmax << endl ;
+      // cout << "a " << a << " b " << b << " c " << c << " d " << d << endl ;
       ibin.integral = integral(i, ibin.xmin, ibin.xmax) ;
+      // cout << "integral " << ibin.integral << endl ;
       m_integral += ibin.integral ;
       pair<double, double> tps = turning_points(i) ;
+      // cout << "tps.first " << tps.first << " tps.second " << tps.second << endl ;
       tps.first = max(min(tps.first, ibin.xmax), ibin.xmin) ;
       tps.second = max(min(tps.second, ibin.xmax), ibin.xmin) ;
+      // cout << "tps.first " << tps.first << " tps.second " << tps.second << endl ;
       ibin.ymax = max(
 		      max(
 			  max(m_spline.Eval(ibin.xmin),
@@ -122,6 +130,7 @@ public :
 	cerr << "SplineGenerator ERROR: ymin < 0. (" << ibin.ymin << ") for bin " << i << endl ;
       }
       ibin.boxintegral = ibin.ymax * (ibin.xmax - ibin.xmin) ;
+      // cout << "ymax " << ibin.ymax << " ymin " << ibin.ymin << " boxintegral " << ibin.boxintegral << endl ;
       m_boxintegral += ibin.boxintegral ;
       m_bins[i] = ibin ;
     }
@@ -150,7 +159,8 @@ public :
   double partial_integral(int i, double x) {
     double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
     m_spline.GetCoeff(i, xmin, a, b, c, d) ;
-    return a * x + b * x * x / 2. + c * x * x * x / 3. + d * x * x * x * x / 4. ;
+    x -= xmin ;
+    return x * (a + x * (b/2. + x * (c/3. + x * d/4.))) ;
   }
 
   double integral(int i, double xmin, double xmax) {
@@ -168,14 +178,17 @@ public :
   }
 
   pair<double, double> turning_points(int i) const {
+    // Note the reversal of coefficient labelling, as the standard
+    // quadratic formula is a x^2 + b x + c while TSplinePoly
+    // uses a + b x + c x^2 + d x^3.
     double xmin(0.), d(0.), c(0.), b(0.), a(0.) ;
-    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+    m_spline.GetCoeff(i, xmin, d, c, b, a) ;
     b *= 2. ;
     a *= 3. ;
     double arg = b*b - 4. * a * c ;
     if(arg < 0.)
-      return pair<double, double>(-1e30, -1e30) ;
-    return pair<double, double>((-b - sqrt(arg))/2./a, (-b + sqrt(arg))/2./a) ;
+      return pair<double, double>(xmin-1e30, xmin-1e30) ;
+    return pair<double, double>(xmin + (-b - sqrt(arg))/2./a, xmin + (-b + sqrt(arg))/2./a) ;
   }
 
   const TSpline3& spline() const {
@@ -212,6 +225,11 @@ public :
     MINT::counted_ptr<IDalitzEvent> evt ;
   } ;
 
+  static DalitzEventPattern anti(DalitzEventPattern pat) {
+    pat[0].antiThis() ;
+    return pat ;
+  }
+  
   TimeDependentGenerator(const string& name, const bool overwrite, TRandom3* rndm, double precision,
 			 const DalitzEventPattern& pattern, double width, double deltam,
 			 double deltagamma,
@@ -219,7 +237,7 @@ public :
     m_name(name),
     m_rndm(rndm),
     m_pattern(pattern),
-    m_cppattern(pattern.makeCPConjugate()),
+    m_cppattern(anti(pattern)),
     m_width(width),
     m_deltam(deltam),
     m_deltagamma(deltagamma),
@@ -244,12 +262,17 @@ public :
       system(cmd.c_str()) ;
     }
     
-    const DalitzEventPattern* patterns[] = {&m_pattern, &m_cppattern} ;
+    const DalitzEventPattern* patterns[] = {&m_cppattern, &m_pattern} ;
     double sampleinterval = m_tmax/m_ntimepoints ;
     for(int tag = -1 ; tag <= 1 ; tag += 2) {
       m_genmap[tag] = GenList() ;
       const DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
       const DalitzEventPattern* antipat = patterns[((tag+1)/2 + 1) % 2] ;
+      // cout << "evtpat " ;
+      // evtpat->print() ;
+      // cout << " antipat " ;
+      // antipat->print() ;
+      // cout << endl ;
       vector<double> times ;
       vector<double> integrals ;
       for(int i = 0 ; i <= m_ntimepoints ; ++i){
@@ -257,10 +280,15 @@ public :
 	AmpPair amps = amplitude_coefficients(tag, decaytime) ;
 	FitAmpSum* model(new FitAmpSum(*evtpat)) ;
 	*model *= amps.first ;
-	FitAmpSum antimodel(*antipat) ;
-	antimodel *= amps.second ;
-	model->add(antimodel) ;
+	if(amps.second != complex<double>(0., 0.)){
+	  FitAmpSum antimodel(*antipat) ;
+	  antimodel *= amps.second ;
+	  model->add(antimodel) ;
+	}
 	SignalGenerator* generator = new SignalGenerator(*evtpat, model) ;
+	//auto evt = generator->newEvent() ;
+	//cout << "Time point " << i << endl ;
+	//model->printAllAmps(*evt) ;
 	ostringstream fname ;
 	fname << m_name << "/tag_" << tag << "_decaytime_" << decaytime ;
 	double integral(0.) ;
@@ -470,7 +498,7 @@ int ampFit(){
       TimeDependentGenerator::GenTimeEvent evt = timedepgen->generate_event() ;
       tags.back() = evt.tag ;
       taus.back() = evt.decaytime ;
-      eventList1.Add(evt.evt.get()) ;
+      eventList1.Add(DalitzEvent(*evt.evt)) ;
     }
     else {
       gen->FillEventList(eventList1, 1);
@@ -478,6 +506,29 @@ int ampFit(){
   }
   
   if((int) saveEvents){
+    // Make sure the first event in the list is a D0 so the naming scheme is consistent.
+    if(eventList1.begin()->eventPattern() != pat){
+      auto ievt = eventList1.begin() ;
+      ++ievt ;
+      for( ; ievt->eventPattern() != pat && ievt != eventList1.end() ; ++ievt)
+	continue ;
+      if(ievt != eventList1.end()){
+	DalitzEvent evt(*ievt) ;
+	int i = ievt - eventList1.begin() ;
+	eventList1.erase(ievt) ;
+	eventList1.theVector().insert(eventList1.begin(), evt) ;
+	auto itag = tags.begin() ;
+	advance(itag, i) ;
+	int tag = *itag ;
+	tags.erase(itag) ;
+	tags.insert(tags.begin(), tag) ;
+	auto itau = taus.begin() ;
+	advance(itau, i) ;
+	double tau = *itau ;
+	taus.erase(itau) ;
+	taus.insert(taus.begin(), tau) ;
+      }
+    }
     eventList1.save("pipipi0_1.root");
     TFile tuplefile("pipipi0_1.root", "update") ;
     TNtupleD* ntuple = (TNtupleD*)tuplefile.Get("DalitzEventList") ;
