@@ -22,7 +22,7 @@ useAnalyticGradient 1
 "Event Pattern"         421 211 -211 111
 
 genTimeDependent	1
-"Nevents"               10000
+"Nevents"               100000
 
 "IntegPrecision"        1.0e-2
 "IntegMethod"           "efficient"
@@ -37,16 +37,16 @@ doScan			0
 lifetime   0.4101
 
 * No mixing.
-x 	   0
+*x 	   0
 * The current world average.
-*x 	   0.0039
+x 	   0.0039
 * x = 2.5 means ~1 oscillation per ps.
 *x	   2.5
 
 * No mixing.
-y 	   0
+*y 	   0
 * The current world average.
-*y 	   0.0065
+y 	   0.0065
 
 qoverp	   1.
 phi	   0.
