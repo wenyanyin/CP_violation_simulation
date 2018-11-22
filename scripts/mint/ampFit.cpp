@@ -56,11 +56,13 @@
 using namespace std;
 using namespace MINT;
 
+// check if a file exists.
 bool exists(const string& fname) {
   struct stat statinfo ;
   return stat(fname.c_str(), &statinfo) == 0 ;
 }
 
+// Class to generate random numbers according to a spline interpolator.
 class SplineGenerator {
 private :
   struct BinInfo {
@@ -136,10 +138,12 @@ public :
     }
   }
 
+  // Total integral between the minimum and maximum knots.
   double integral() const {
     return m_integral ;
   }
-  
+
+  // Generate a random number from the spline.
   double gen_random() const {
     while(true){
       double boxsel = m_rndm->Rndm() * m_boxintegral ;
@@ -156,17 +160,7 @@ public :
     }
   }
 
-  double partial_integral(int i, double x) {
-    double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
-    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
-    x -= xmin ;
-    return x * (a + x * (b/2. + x * (c/3. + x * d/4.))) ;
-  }
-
-  double integral(int i, double xmin, double xmax) {
-    return partial_integral(i, xmax) - partial_integral(i, xmin) ;
-  }
-  
+  // Get the integral of the spline between xmin and xmax.
   double integral(double xmin, double xmax) {
     int istart = m_spline.FindX(xmin) ;
     int iend = m_spline.FindX(xmax) ;
@@ -177,6 +171,26 @@ public :
     return _integral ;
   }
 
+  // Get the spline.
+  const TSpline3& spline() const {
+    return m_spline ;
+  }
+
+private :
+  // Partial integral for knot i at x.
+  double partial_integral(int i, double x) {
+    double xmin(0.), a(0.), b(0.), c(0.), d(0.) ;
+    m_spline.GetCoeff(i, xmin, a, b, c, d) ;
+    x -= xmin ;
+    return x * (a + x * (b/2. + x * (c/3. + x * d/4.))) ;
+  }
+
+  // Integral for knot i between xmin and xmax.
+  double integral(int i, double xmin, double xmax) {
+    return partial_integral(i, xmax) - partial_integral(i, xmin) ;
+  }
+
+  // Get the turning points of knot i.
   pair<double, double> turning_points(int i) const {
     // Note the reversal of coefficient labelling, as the standard
     // quadratic formula is a x^2 + b x + c while TSplinePoly
@@ -191,14 +205,15 @@ public :
     return pair<double, double>(xmin + (-b - sqrt(arg))/2./a, xmin + (-b + sqrt(arg))/2./a) ;
   }
 
-  const TSpline3& spline() const {
-    return m_spline ;
-  }
+
 } ;
 
+
+// Class to generate time dependent phase space events.
 class TimeDependentGenerator {
 
 public :
+  // Class to hold the generator at a given time point.
   class GenTimePoint {
   public :
     GenTimePoint(const double _decaytime, FitAmpSum* _model,
@@ -218,18 +233,35 @@ public :
   typedef list<GenTimePoint> GenList ;
   typedef map<int, GenList> GenMap ;
   typedef pair<complex<double>, complex<double> > AmpPair ;
-  
+
+  // Class to hold the tag (production flavour), decay time and
+  // Dalitz event that's generated.
   struct GenTimeEvent {
     int tag ;
     double decaytime ;
     MINT::counted_ptr<IDalitzEvent> evt ;
   } ;
 
+  // Take the CP conjugate of the head of the decay pattern.
   static DalitzEventPattern anti(DalitzEventPattern pat) {
     pat[0].antiThis() ;
     return pat ;
   }
-  
+
+  /* Constructor, takes:
+   name : the name of the generator and the directory in which the integrators will be saved.
+   overwrite : whether to overwrite the existing integrator files (if they exist).
+   rndm : The random number generator to use.
+   precision : The precision to which the integrals must be calculated.
+   pattern : The event pattern to be used (the CP conjugate will automatically be added).
+   width : the decay width in 1/ps.
+   deltam : the delta-mass in 1/ps.
+   deltagamma : the delta-gamma in 1/ps.
+   qoverp : the magnitude of q/p.
+   phi : the phase of q/p.
+   tmax : the maximum decay time that'll be generated.
+   ntimepoints : the number of points to sample between 0 and tmax when building the generators.
+  */
   TimeDependentGenerator(const string& name, const bool overwrite, TRandom3* rndm, double precision,
 			 const DalitzEventPattern& pattern, double width, double deltam,
 			 double deltagamma,
@@ -264,6 +296,7 @@ public :
     
     const DalitzEventPattern* patterns[] = {&m_cppattern, &m_pattern} ;
     double sampleinterval = m_tmax/m_ntimepoints ;
+    // Loop over flavours.
     for(int tag = -1 ; tag <= 1 ; tag += 2) {
       m_genmap[tag] = GenList() ;
       const DalitzEventPattern* evtpat = patterns[(tag+1)/2] ;
@@ -275,6 +308,7 @@ public :
       // cout << endl ;
       vector<double> times ;
       vector<double> integrals ;
+      // Loop over decay time sample points.
       for(int i = 0 ; i <= m_ntimepoints ; ++i){
 	double decaytime = i * sampleinterval ;
 	AmpPair amps = amplitude_coefficients(tag, decaytime) ;
@@ -292,12 +326,14 @@ public :
 	ostringstream fname ;
 	fname << m_name << "/tag_" << tag << "_decaytime_" << decaytime ;
 	double integral(0.) ;
+	// Calculate the integral if necessary.
 	if(!exists(fname.str())){
 	  DalitzPdfSaveInteg dalitz(*evtpat, model, m_precision, fname.str(),
 				    fname.str() + "_events.root", "topUp", fname.str()) ;
 	  integral = dalitz.getIntegralValue() ;
 	  dalitz.saveIntegrator(fname.str()) ;
 	}
+	// Else retrive the integral from a file.
 	else {
 	  auto intcalc = model->makeIntegrationCalculator() ;
 	  intcalc->retrieve(fname.str()) ;
@@ -316,6 +352,8 @@ public :
 	times.push_back(decaytime) ;
 	integrals.push_back(integral) ;
       }
+      // Make a spline interpolator of the decay time distributions, to be used to generate
+      // the decay times.
       ostringstream splinename ;
       splinename << "timespline_tag_" << tag ;
       string splinenamestr = splinename.str() ;
@@ -323,22 +361,24 @@ public :
       timespline.SetName(splinenamestr.c_str()) ;
       m_timegenerators.insert(make_pair(tag, SplineGenerator(rndm, timespline))) ;
     }
+    // Calculate the integrated CP asymmetry.
     double integminus = m_timegenerators.find(-1)->second.integral() ;
     double integplus = m_timegenerators.find(1)->second.integral() ;
     cout << "Integrated CP asymmetry is " << (integplus - integminus)/(integplus + integminus) << endl ;
     m_tagintegralfrac = integminus/(integminus + integplus) ;
   }
 
+  // Get the coefficients of the amplitudes for the produced flavour and the mixed flavour
+  // given the tag and decay time.
   AmpPair amplitude_coefficients(const int tag, const double decaytime) {
-    double coeff = exp(-decaytime * 0.5 * (m_width - m_deltagamma)) ;
-    complex<double> expterm = exp(complex<double>(m_deltagamma * decaytime/2., -m_deltam * decaytime)) ;
-    complex<double> plusterm = 1. + expterm ;
-    complex<double> minusterm = 1. - expterm ;
-    complex<double> coeffprod = coeff * plusterm ;
-    complex<double> coeffmix = polar(m_qoverp, tag * m_phi) * coeff * minusterm ;
+    // Currently no CPV or mixing implemented, just an exponential decay.
+    double coeff = exp(-decaytime * 0.5 * m_width) ;
+    complex<double> coeffprod(coeff, 0.) ;
+    complex<double> coeffmix(0., 0.) ;
     return AmpPair(coeffprod, coeffmix) ;
   }
 
+  // Generate a flavour.
   int generate_tag() const {
     double rndm = m_rndm->Rndm() ;
     if(rndm < m_tagintegralfrac)
@@ -346,6 +386,7 @@ public :
     return 1 ;
   }
 
+  // Generate a decay time for the given flavour.
   double generate_decay_time(const int tag) const {
     double decaytime = m_tmax + 1. ;
     while(decaytime > m_tmax)
@@ -353,6 +394,7 @@ public :
     return decaytime ;
   }
 
+  // Generate a Dalitz event for the given flavour and decay time.
   MINT::counted_ptr<IDalitzEvent> generate_dalitz_event(const int tag, const double decaytime) const {
     const GenList& genlist = m_genmap.find(tag)->second ;
     GenList::const_iterator igen = genlist.begin() ;
@@ -375,6 +417,7 @@ public :
     return igen->generator->newEvent() ;
   }
 
+  // Generate a flavour, decay time and Dalitz event.
   GenTimeEvent generate_event() const {
     GenTimeEvent evt ;
     evt.tag = generate_tag() ;
@@ -383,6 +426,7 @@ public :
     return evt ;
   }
 
+  // Get the decay time generators.
   const map<int, SplineGenerator> time_generators() const {
     return m_timegenerators;
   }
@@ -410,6 +454,10 @@ private :
   double m_precision ;
 } ;
 
+
+// ===========
+// Main method
+// ===========
 int ampFit(){
   time_t startTime = time(0);
 
@@ -420,16 +468,6 @@ int ampFit(){
 
   FitAmplitude::AutogenerateFitFile();
 
-  NamedParameter<double>  lambda("lambda", 1.);
-
-  NamedParameter<string> IntegratorEventFile("IntegratorEventFile"
-					     , (std::string) "SignalIntegrationEvents"
-					     , (char*) 0);
-  string SgIntegratorEventFile1 = "Sg" + ((string)IntegratorEventFile) + "_1.root";
-
-  NamedParameter<string> IntegratorInputFile("IntegratorInputFile"
-					     , (std::string) "sgIntegrator"
-					     , (char*) 0);
   NamedParameter<int>  Nevents("Nevents", 10000);
   NamedParameter<int>  doScan("doScan", 0);
   NamedParameter<std::string> integMethod("IntegMethod", (std::string) "efficient");
