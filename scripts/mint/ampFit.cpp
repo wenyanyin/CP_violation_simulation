@@ -372,11 +372,44 @@ public :
   // given the tag and decay time.
   AmpPair amplitude_coefficients(const int tag, const double decaytime) {
     // Currently no CPV or mixing implemented, just an exponential decay.
-    double coeff = exp(-decaytime * 0.5 * m_width) ;
-    complex<double> coeffprod(coeff, 0.) ;
-    complex<double> coeffmix(0., 0.) ;
+    //coeffprod=f_{+}(t)
+    //coeffmix=qoverp*f_{-}(t) or poverq*f_{-}(t)
+    //eqn1.8: eigenstate of Hamiltian =coeffprod*pattern+coeffmix*anti(pattern)
+    //eqn1.9: coeff=1/2*exp(-i*m_1)*exp(-gamma_1*t/2)*(1+/-exp(-i*deltam*t)*exp(deltawidth*t/2))
+    
+    //deltagamma=gamma2-gamma1
+    //m_width=(gamma1+gamma2)/2
+    //gamma_1=(2*width-deltagamma)/2
+
+    complex<double> i(0.0, 1.0);
+
+    complex<double> qoverp=polar(m_qoverp, m_phi);
+ cout<<"the value of qoverp is "<<qoverp<<endl;
+    //double coeff = exp(-decaytime * 0.5 * m_width) ;
+    //f_{+}(t)
+    //exp(i*t)=cos(t)+isin(t)
+    //complex<double> f_plus {1/2*exp(-(2*m_width-m_deltagamma)/2*decaytime/2)*(1+exp(m_deltagamma*decaytime/2)*cos(m_deltam*decaytime)), 1/2*exp(-(2*m_width-m_deltagamma)/2*decaytime/2)*exp(m_deltagamma*decaytime/2)*sin(m_deltam*decaytime)};
+    complex<double> f_plus=1/2.*exp(-(2.0*m_width-m_deltagamma)/2.0*decaytime/2.0)*(1.0+exp(m_deltagamma*decaytime/2.0)*exp(i*m_deltam*decaytime));
+    //f_{-}(t)
+    //complex<double> f_minus {1/2*exp(-(2*m_width-m_deltagamma)/2*decaytime/2)*(1-exp(m_deltagamma*decaytime/2)*cos(m_deltam*decaytime)), -1/2*exp(-(2*m_width-m_deltagamma)/2*decaytime/2)*exp(m_deltagamma*decaytime/2)*sin(m_deltam*decaytime)};
+    complex<double> f_minus=1/2.*exp(-(2.0*m_width-m_deltagamma)/2.0*decaytime/2.0)*(1.0-exp(m_deltagamma*decaytime/2.0)*exp(i*m_deltam*decaytime));
+
+ cout<<"f_plus value is "<<f_plus<<endl;
+ cout<<"f_minus value is "<<f_minus<<endl;
+    //complex<double> coeffprod(coeff, 0.) ;
+    //complex<double> coeffmix(0., 0.) ;
+    complex<double> coeffprod {f_plus};
+    complex<double> coeffmix;
+    if (tag==-1){
+      coeffmix=f_minus/qoverp;
+    }
+    else { 
+      coeffmix=qoverp*f_minus ;
+    }
+
     return AmpPair(coeffprod, coeffmix) ;
   }
+
 
   // Generate a flavour.
   int generate_tag() const {
