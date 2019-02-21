@@ -18,13 +18,21 @@
 
   // Add the calculation here.
   double aGamma = (meanD0bar - meanD0)/(meanD0bar + meanD0);
-  std:: cout<<"AGamma "<<aGamma<<endl;
+  //std:: cout<<"AGamma "<<aGamma<<endl;
+  //output AGAMMA data in into a file
+  ofstream outfile("../results.txt");
+  std:: outfile<<" "<<aGamma<<" "<<endl;
+  outfile.close();
 
   //relative uncertainty propagation mGamma/AGamma
   //double aGammaError = 2.0*meanD0/(meanD0bar*meanD0bar - meanD0*meanD0)*meanErrorD0bar - 2.0*meanD0bar/(meanD0bar*meanD0bar - meanD0*meanD0)*meanErrorD0 ;
   //absolute uncertainty propagation mGamma
   double aGammaError =sqrt(std::pow(2.0*meanD0/((meanD0bar+meanD0)*(meanD0bar+meanD0)), 2)*meanErrorD0bar*meanErrorD0bar + std::pow(2.0*meanD0bar/((meanD0bar+meanD0)*(meanD0bar+meanD0)), 2)*meanErrorD0*meanErrorD0) ;
-  std:: cout<<"AGamma uncertainty propagation "<<aGammaError<<endl;
+  //std:: cout<<"AGamma uncertainty propagation "<<aGammaError<<endl;
+  //output Variance in into a file
+  ofstream outfile("../results.txt");
+  std:: outfile<<" "<<aGammaError<<" "<<endl;
+  outfile.close();
 
 
   TH1F hAsymmetry("hAsymmetry", "", 100, 0., 4.1) ;
