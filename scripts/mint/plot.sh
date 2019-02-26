@@ -7,7 +7,7 @@ cd /nfs/lhcb/malexander01/wenyan/
 rm results.txt
 touch results.txt
 
-dirnames=${ls $path}
+dirnames=$(ls $path)
 
 for dir in ${dirnames}
 do
@@ -18,11 +18,11 @@ do
 	#qoverp
 	tail -n 1 pipipi0.txt | tr -cd "[0-9] ." >> ../results.txt
 
-	root -l plotTime.C >stdout
+	root -b -q plotTime.C >stdout
 	#Extract number of the standard output: AGAMMA
-	sed -n '3p' stdout | tr -cd "[0-9] ." >> ../results.txt
+	tail -n 2 stdout | head -n 1 | tr -cd "[0-9] ." >> ../results.txt
 	#Extract number of the standard output: AGAMMAERROR
-	sed -n '4p' stdout | tr -cd "[0-9] ." >> ../results.txt
+	sed -n '$p' stdout | tr -cd "[0-9] ." >> ../results.txt
 	echo -e "\n" >> ../results.txt
 	cd ..
 done
@@ -31,3 +31,5 @@ done
 
 #Extrcat the second last row
 #cat file | sed -n '2p' or cat file |head -n 2|tail -n 1
+#Extract last line of the file
+#sed -n '$p' file
